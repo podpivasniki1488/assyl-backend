@@ -34,7 +34,7 @@ import (
 // @version         1.0
 // @description     API для работы с приложением для ЖК.
 //
-// @host      localhost:8080
+// @host      https://assyl-c9b2197f0ace.herokuapp.com
 // @BasePath  /api/v1
 func main() {
 	// get some envs somewhere

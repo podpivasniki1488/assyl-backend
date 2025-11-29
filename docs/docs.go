@@ -166,11 +166,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "https://assyl-c9b2197f0ace.herokuapp.com",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Assyl Backend API",
-	Description:      "Auth API для регистрации, логина и подтверждения пользователя.",
+	Description:      "API для работы с приложением для ЖК.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

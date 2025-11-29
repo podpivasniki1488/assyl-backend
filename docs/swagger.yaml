@@ -35,10 +35,10 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8080
+host: https://assyl-c9b2197f0ace.herokuapp.com
 info:
   contact: {}
-  description: Auth API для регистрации, логина и подтверждения пользователя.
+  description: API для работы с приложением для ЖК.
   title: Assyl Backend API
   version: "1.0"
 paths:
