@@ -81,7 +81,7 @@ func (a *authService) Login(ctx context.Context, user model.User) (token string,
 		return "", err
 	}
 
-	if u.Username == user.Username {
+	if u.Username == user.Username && u.IsApproved {
 		if err = bcrypt.CompareHashAndPassword(
 			[]byte(u.Password),
 			[]byte(user.Password),
@@ -89,7 +89,7 @@ func (a *authService) Login(ctx context.Context, user model.User) (token string,
 			return "", err
 		}
 
-		token, err = a.generateJwtToken(u.Username)
+		token, err = a.generateJwtToken(u.Username, u.RoleID)
 		if err != nil {
 			return "", err
 		}
@@ -187,10 +187,11 @@ func (a *authService) isPhone(str string) bool {
 	return true
 }
 
-func (a *authService) generateJwtToken(username string) (string, error) {
+func (a *authService) generateJwtToken(username string, role protopb.Role) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"username": username,
+			"role":     role.String(),
 			"issuer":   "jeffry's backend",
 		})
 

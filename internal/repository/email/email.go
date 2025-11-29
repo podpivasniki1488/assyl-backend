@@ -13,9 +13,11 @@ type email struct {
 	username, password string
 }
 
-func NewEmailRepo(tracer trace.Tracer) EmailRepo {
+func NewEmailRepo(tracer trace.Tracer, username, password string) EmailRepo {
 	return &email{
-		tracer: tracer,
+		tracer:   tracer,
+		username: username,
+		password: password,
 	}
 }
 

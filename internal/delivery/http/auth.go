@@ -45,16 +45,12 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 }
 
 func (h *httpDelivery) login(c echo.Context) error {
-	return nil
-
-	/*ctx := c.Request().Context()
-
-	ctx, span := h.tracer.Start(ctx, "httpDelivery.login")
+	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.login")
 	defer span.End()
 
 	var login loginRequest
 	if err := c.Bind(&login); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
 	token, err := h.service.Auth.Login(ctx, model.User{
@@ -62,16 +58,13 @@ func (h *httpDelivery) login(c echo.Context) error {
 		Password: login.Password,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, loginResponse{
-			Error: proto.String(err.Error()),
-		})
+		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
 	}
 
-	return c.JSON(http.StatusOK, loginResponse{
-		Token:    &token,
-		Username: &login.Username,
-		Error:    nil,
-	})*/
+	return c.JSON(http.StatusOK, DefaultResponse[string]{
+		Status: "ok",
+		Data:   token,
+	})
 }
 
 // register godoc
@@ -86,7 +79,7 @@ func (h *httpDelivery) login(c echo.Context) error {
 // @Failure      500      {object}  DefaultResponse[error]  "Внутренняя ошибка сервера"
 // @Router       /auth/register [post]
 func (h *httpDelivery) register(c echo.Context) error {
-	ctx, span := h.tracer.Start(c.Request().Context(), "http.someHandler")
+	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.register")
 	defer span.End()
 
 	var req registerRequest

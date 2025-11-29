@@ -78,7 +78,7 @@ func main() {
 
 	db := repository.MustInitDb(cfg.DBDSN)
 
-	repo := repository.NewRepository(db, debug, tracer)
+	repo := repository.NewRepository(db, debug, tracer, cfg.GmailUsername, cfg.GmailPassword)
 
 	srv := service.NewService(repo, tracer, rdb)
 
