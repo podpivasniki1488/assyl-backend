@@ -1,0 +1,104 @@
+basePath: /api/v1
+definitions:
+  http.DefaultResponse-error:
+    properties:
+      data: {}
+      error_message:
+        type: string
+      status:
+        type: string
+    type: object
+  http.DefaultResponse-string:
+    properties:
+      data:
+        type: string
+      error_message:
+        type: string
+      status:
+        type: string
+    type: object
+  http.confirmRequest:
+    properties:
+      otp_code:
+        type: string
+      username:
+        type: string
+    type: object
+  http.registerRequest:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Auth API для регистрации, логина и подтверждения пользователя.
+  title: Assyl Backend API
+  version: "1.0"
+paths:
+  /auth/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Подтверждает пользователя по OTP-коду.
+      parameters:
+      - description: Confirm request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.confirmRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Подтверждение прошло успешно
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      summary: Confirm registration
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует нового пользователя и отправляет OTP на указанный
+        username (телефон/почта).
+      parameters:
+      - description: Register request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная регистрация
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      summary: Register new user
+      tags:
+      - auth
+swagger: "2.0"

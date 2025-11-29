@@ -1,0 +1,135 @@
+package http
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	"github.com/podpivasniki1488/assyl-backend/internal/model"
+)
+
+func (h *httpDelivery) registerAuthHandlers(v1 *echo.Group) {
+	auth := v1.Group("/auth")
+
+	auth.POST("/register", h.register)
+	auth.POST("/confirm", h.confirm)
+	auth.POST("/login", h.login)
+}
+
+// confirm godoc
+// @Summary      Confirm registration
+// @Description  Подтверждает пользователя по OTP-коду.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      confirmRequest       true  "Confirm request"
+// @Success      204      "Подтверждение прошло успешно"
+// @Failure      400      {object}  DefaultResponse[error]  "Невалидный запрос"
+// @Failure      500      {object}  DefaultResponse[error]  "Внутренняя ошибка сервера"
+// @Router       /auth/confirm [post]
+func (h *httpDelivery) confirm(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	ctx, span := h.tracer.Start(ctx, "httpDelivery.confirm")
+	defer span.End()
+
+	var confirm confirmRequest
+	if err := c.Bind(&confirm); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
+	}
+
+	if err := h.service.Auth.Confirm(ctx, confirm.Username, confirm.OtpCode); err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+	}
+
+	return c.JSON(http.StatusNoContent, nil)
+}
+
+func (h *httpDelivery) login(c echo.Context) error {
+	return nil
+
+	/*ctx := c.Request().Context()
+
+	ctx, span := h.tracer.Start(ctx, "httpDelivery.login")
+	defer span.End()
+
+	var login loginRequest
+	if err := c.Bind(&login); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	token, err := h.service.Auth.Login(ctx, model.User{
+		Username: login.Username,
+		Password: login.Password,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, loginResponse{
+			Error: proto.String(err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, loginResponse{
+		Token:    &token,
+		Username: &login.Username,
+		Error:    nil,
+	})*/
+}
+
+// register godoc
+// @Summary      Register new user
+// @Description  Регистрирует нового пользователя и отправляет OTP на указанный username (телефон/почта).
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      registerRequest      true  "Register request"
+// @Success      200      {object}  DefaultResponse[string] "Успешная регистрация"
+// @Failure      400      {object}  DefaultResponse[error]  "Невалидный запрос"
+// @Failure      500      {object}  DefaultResponse[error]  "Внутренняя ошибка сервера"
+// @Router       /auth/register [post]
+func (h *httpDelivery) register(c echo.Context) error {
+	ctx, span := h.tracer.Start(c.Request().Context(), "http.someHandler")
+	defer span.End()
+
+	var req registerRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
+	}
+
+	if err := h.service.Auth.Register(ctx,
+		model.User{
+			Username: req.Username,
+			Password: req.Password,
+		}); err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, DefaultResponse[string]{
+		Status: "ok",
+	})
+}
+
+func (h *httpDelivery) logout(c echo.Context) error {
+	return nil
+}
+
+type confirmRequest struct {
+	Username string `json:"username"`
+	OtpCode  string `json:"otp_code"`
+}
+
+type registerRequest struct {
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
+type loginRequest struct {
+	Username string `json:"Username"`
+	Password string `json:"password"`
+}
+
+type loginResponse struct {
+	Token    *string `json:"token"`
+	Username *string `json:"Username"`
+	Error    *string `json:"error"`
+}
