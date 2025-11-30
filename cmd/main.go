@@ -36,7 +36,7 @@ import (
 // @description     API для работы с приложением для ЖК.
 //
 // @host      assyl-c9b2197f0ace.herokuapp.com
-// @BasePath  /api/v1
+// @BasePath  /v1
 func main() {
 	// get some envs somewhere
 	ctx, cancel := context.WithCancel(context.Background())

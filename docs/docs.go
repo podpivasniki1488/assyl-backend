@@ -181,7 +181,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "assyl-c9b2197f0ace.herokuapp.com",
-	BasePath:         "/api/v1",
+	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "Assyl Backend API",
 	Description:      "API для работы с приложением для ЖК.",
