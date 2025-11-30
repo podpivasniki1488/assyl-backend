@@ -47,7 +47,7 @@ definitions:
     - password
     - username
     type: object
-host: https://assyl-c9b2197f0ace.herokuapp.com
+host: assyl-c9b2197f0ace.herokuapp.com
 info:
   contact: {}
   description: API для работы с приложением для ЖК.
