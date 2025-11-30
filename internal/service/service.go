@@ -29,10 +29,15 @@ type UserManagement interface {
 	DeleteUserByEmail(ctx context.Context, email string) error
 }
 
-func NewService(repo *repository.Repository, tracer trace.Tracer, redisCli *redis.Client) *Service {
+func NewService(
+	repo *repository.Repository,
+	tracer trace.Tracer,
+	redisCli *redis.Client,
+	secretKey string,
+) *Service {
 	return &Service{
 		UserValidator:  NewUserValidator(repo),
 		UserManagement: NewUserManagement(repo),
-		Auth:           NewAuthService(repo, "asd", tracer, redisCli),
+		Auth:           NewAuthService(repo, secretKey, tracer, redisCli),
 	}
 }
