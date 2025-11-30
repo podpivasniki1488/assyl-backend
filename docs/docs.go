@@ -134,6 +134,10 @@ const docTemplate = `{
         },
         "http.confirmRequest": {
             "type": "object",
+            "required": [
+                "otp_code",
+                "username"
+            ],
             "properties": {
                 "otp_code": {
                     "type": "string"
@@ -145,6 +149,12 @@ const docTemplate = `{
         },
         "http.registerRequest": {
             "type": "object",
+            "required": [
+                "first_name",
+                "last_name",
+                "password",
+                "username"
+            ],
             "properties": {
                 "first_name": {
                     "type": "string"
@@ -153,10 +163,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 8
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
                 }
             }
         }
