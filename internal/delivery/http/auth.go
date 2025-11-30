@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 )
@@ -38,12 +37,12 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	if err := validator.New().Struct(&confirm); err != nil {
+	if err := validate.Struct(&confirm); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
 	if err := h.service.Auth.Confirm(ctx, confirm.Username, confirm.OtpCode); err != nil {
-		return HandleErrResponse(c, err)
+		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusNoContent, nil)
@@ -58,7 +57,7 @@ func (h *httpDelivery) login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	if err := validator.New().Struct(&login); err != nil {
+	if err := validate.Struct(&login); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
@@ -67,7 +66,7 @@ func (h *httpDelivery) login(c echo.Context) error {
 		Password: login.Password,
 	})
 	if err != nil {
-		return HandleErrResponse(c, err)
+		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusOK, DefaultResponse[string]{
@@ -96,7 +95,7 @@ func (h *httpDelivery) register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	if err := validator.New().Struct(&req); err != nil {
+	if err := validate.Struct(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
@@ -105,7 +104,7 @@ func (h *httpDelivery) register(c echo.Context) error {
 			Username: req.Username,
 			Password: req.Password,
 		}); err != nil {
-		return HandleErrResponse(c, err)
+		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusOK, DefaultResponse[string]{
@@ -130,6 +129,6 @@ type registerRequest struct {
 }
 
 type loginRequest struct {
-	Username string `json:"Username" validate:"required"`
+	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }

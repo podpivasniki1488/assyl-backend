@@ -22,11 +22,13 @@ func ErrorResponse(errMsg string) DefaultResponse[error] {
 	}
 }
 
-func HandleErrResponse(c echo.Context, err error) error {
+func (h *httpDelivery) handleErrResponse(c echo.Context, err error) error {
 	var appErr model.AppError
 	if errors.As(err, &appErr) {
 		return c.JSON(appErr.HttpStatusCode, ErrorResponse(appErr.Error()))
 	}
 
-	return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+	h.logger.Error("internal error %s", err.Error())
+
+	return c.JSON(http.StatusInternalServerError, ErrorResponse("internal error"))
 }
