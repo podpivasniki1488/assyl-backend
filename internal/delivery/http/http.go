@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	_ "github.com/podpivasniki1488/assyl-backend/docs"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
@@ -26,6 +27,8 @@ func NewHTTPDelivery(logger *slog.Logger, s *service.Service, tracer trace.Trace
 		tracer:  tracer,
 	}
 }
+
+var validate = validator.New()
 
 func (h *httpDelivery) Start(port string) {
 	h.registerHandler()

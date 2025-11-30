@@ -37,8 +37,12 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
+	if err := validate.Struct(&confirm); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
+	}
+
 	if err := h.service.Auth.Confirm(ctx, confirm.Username, confirm.OtpCode); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusNoContent, nil)
@@ -53,12 +57,16 @@ func (h *httpDelivery) login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
+	if err := validate.Struct(&login); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
+	}
+
 	token, err := h.service.Auth.Login(ctx, model.User{
 		Username: login.Username,
 		Password: login.Password,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusOK, DefaultResponse[string]{
@@ -87,12 +95,18 @@ func (h *httpDelivery) register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
+	if err := validate.Struct(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
+	}
+
 	if err := h.service.Auth.Register(ctx,
 		model.User{
-			Username: req.Username,
-			Password: req.Password,
+			Username:  req.Username,
+			Password:  req.Password,
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
 		}); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusOK, DefaultResponse[string]{
@@ -105,24 +119,18 @@ func (h *httpDelivery) logout(c echo.Context) error {
 }
 
 type confirmRequest struct {
-	Username string `json:"username"`
-	OtpCode  string `json:"otp_code"`
+	Username string `json:"username" validate:"required"`
+	OtpCode  string `json:"otp_code" validate:"required"`
 }
 
 type registerRequest struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	Username  string `json:"username" validate:"required,min=3,max=32"`
+	Password  string `json:"password" validate:"required,min=8,max=32"`
+	FirstName string `json:"first_name" validate:"required"`
+	LastName  string `json:"last_name" validate:"required"`
 }
 
 type loginRequest struct {
-	Username string `json:"Username"`
-	Password string `json:"password"`
-}
-
-type loginResponse struct {
-	Token    *string `json:"token"`
-	Username *string `json:"Username"`
-	Error    *string `json:"error"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }

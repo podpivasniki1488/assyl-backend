@@ -60,8 +60,11 @@ func (u *userRepository) FindByUsername(ctx context.Context, username string) (*
 	}
 
 	if err := query.First(&user).Error; err != nil {
-		slog.Error("find user by username error", "username", username, "error", err)
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, model.ErrUserNotFound
+		}
+
+		return nil, model.ErrDBUnexpected.WithErr(err)
 	}
 
 	return &user, nil
@@ -77,14 +80,16 @@ func (u *userRepository) UpdateUser(ctx context.Context, user *model.User) (*mod
 		First(&findResp).
 		Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("no user found to update")
+			return nil, model.ErrUserNotFound
 		}
+
+		return nil, model.ErrDBUnexpected.WithErr(err)
 	}
 
 	user.ID = findResp.ID
 
 	if err := u.db.WithContext(ctx).Save(user).Error; err != nil {
-		return nil, err
+		return nil, model.ErrDBUnexpected.WithErr(err)
 	}
 
 	var updateResp model.User
@@ -92,7 +97,7 @@ func (u *userRepository) UpdateUser(ctx context.Context, user *model.User) (*mod
 		WithContext(ctx).
 		First(&updateResp, "id = ?", user.ID).
 		Error; err != nil {
-		return nil, err
+		return nil, model.ErrDBUnexpected.WithErr(err)
 	}
 
 	return &updateResp, nil
@@ -108,16 +113,16 @@ func (u *userRepository) CreateUser(ctx context.Context, user *model.User) error
 		Find(&predictedUser)
 
 	if findQuery.Error != nil {
-		return findQuery.Error
+		return model.ErrDBUnexpected.WithErr(findQuery.Error)
 	}
 
 	if len(predictedUser) > 0 {
-		return errors.New("user already exists")
+		return model.ErrUserAlreadyExists
 	}
 
 	insertQuery := u.db.WithContext(ctx).Create(user)
 	if err := insertQuery.Error; err != nil {
-		return err
+		return model.ErrDBUnexpected.WithErr(err)
 	}
 
 	return nil
@@ -137,7 +142,7 @@ func (u *userRepository) DeleteByUsername(ctx context.Context, username string) 
 	}
 
 	if err := query.Delete(&user).Error; err != nil {
-		return err
+		return model.ErrDBUnexpected.WithErr(err)
 	}
 
 	return nil

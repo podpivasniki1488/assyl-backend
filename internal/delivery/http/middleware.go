@@ -1,5 +1,13 @@
 package http
 
+import (
+	"errors"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	"github.com/podpivasniki1488/assyl-backend/internal/model"
+)
+
 type DefaultResponse[T any] struct {
 	Status       string `json:"status"`
 	ErrorMessage string `json:"error_message"`
@@ -12,4 +20,15 @@ func ErrorResponse(errMsg string) DefaultResponse[error] {
 		ErrorMessage: errMsg,
 		Data:         nil,
 	}
+}
+
+func (h *httpDelivery) handleErrResponse(c echo.Context, err error) error {
+	var appErr model.AppError
+	if errors.As(err, &appErr) {
+		return c.JSON(appErr.HttpStatusCode, ErrorResponse(appErr.Error()))
+	}
+
+	h.logger.Error("internal error %s", err.Error())
+
+	return c.JSON(http.StatusInternalServerError, ErrorResponse("internal error"))
 }

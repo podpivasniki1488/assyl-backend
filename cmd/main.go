@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/podpivasniki1488/assyl-backend/internal/delivery"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
@@ -40,8 +41,6 @@ func main() {
 	// get some envs somewhere
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	//TODO: FINALLY NEED TO DEPLOY AND START IN HEROKU
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -74,7 +73,7 @@ func main() {
 	txtHandler := slog.NewTextHandler(os.Stdin, nil)
 	logger := slog.New(txtHandler)
 
-	debug := cfg.Debug //TODO: debug from env
+	debug := cfg.Debug
 
 	db := repository.MustInitDb(cfg.DBDSN)
 
@@ -85,9 +84,6 @@ func main() {
 	d := delivery.NewDelivery(logger, srv, tracer)
 
 	port := cfg.HttpPort
-	if port == "" {
-		panic("port is empty")
-	}
 
 	go func() {
 		d.Http.Start(":" + port)
@@ -115,19 +111,23 @@ func mustReadConfig() Config {
 		HttpPort:      os.Getenv("PORT"),
 	}
 
+	if err := validator.New().Struct(&cfg); err != nil {
+		panic(err)
+	}
+
 	return cfg
 }
 
 type Config struct {
-	RedisDSN      string
-	RedisUsername string
-	RedisPassword string
-	DBDSN         string
-	JwtSecretKey  string
+	RedisDSN      string `validate:"required"`
+	RedisUsername string `validate:"required"`
+	RedisPassword string `validate:"required"`
+	DBDSN         string `validate:"required"`
+	JwtSecretKey  string `validate:"required"`
 	Debug         bool
-	GmailUsername string
-	GmailPassword string
-	HttpPort      string
+	GmailUsername string `validate:"required,email"`
+	GmailPassword string `validate:"required"`
+	HttpPort      string `validate:"required"`
 }
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.

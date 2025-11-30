@@ -81,23 +81,20 @@ func (a *authService) Login(ctx context.Context, user model.User) (token string,
 		return "", err
 	}
 
-	if u.Username == user.Username && u.IsApproved {
-		if err = bcrypt.CompareHashAndPassword(
-			[]byte(u.Password),
-			[]byte(user.Password),
-		); err != nil {
-			return "", err
-		}
-
-		token, err = a.generateJwtToken(u.Username, u.RoleID)
-		if err != nil {
-			return "", err
-		}
-
-		return token, nil
+	if !u.IsApproved {
+		return "", model.ErrUserNotApproved
 	}
 
-	return "", errors.New("user not found") // TODO; maybe package of errs?
+	if ok := a.comparePasswords(u.Password, user.Password); !ok {
+		return "", model.ErrPasswordMatch
+	}
+
+	token, err = a.generateJwtToken(u.Username, u.RoleID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (a *authService) Register(ctx context.Context, user model.User) error {
@@ -105,7 +102,7 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 	defer span.End()
 
 	if _, err := a.repo.UserRepo.FindByUsername(ctx, user.Username); err == nil {
-		return errors.New("username exists")
+		return model.ErrUserAlreadyExists
 	}
 
 	var usernameType int
@@ -201,4 +198,10 @@ func (a *authService) generateJwtToken(username string, role protopb.Role) (stri
 	}
 
 	return tokenString, nil
+}
+
+func (a *authService) comparePasswords(hashedPw string, plainPw string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPw), []byte(plainPw))
+
+	return err == nil
 }
