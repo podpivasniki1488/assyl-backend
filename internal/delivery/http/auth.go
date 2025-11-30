@@ -101,8 +101,10 @@ func (h *httpDelivery) register(c echo.Context) error {
 
 	if err := h.service.Auth.Register(ctx,
 		model.User{
-			Username: req.Username,
-			Password: req.Password,
+			Username:  req.Username,
+			Password:  req.Password,
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
 		}); err != nil {
 		return h.handleErrResponse(c, err)
 	}
