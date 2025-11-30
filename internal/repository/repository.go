@@ -35,9 +35,9 @@ func MustInitDb(dsn string) *gorm.DB {
 	return db
 }
 
-func NewRepository(db *gorm.DB, debug bool, trace trace.Tracer) *Repository {
+func NewRepository(db *gorm.DB, debug bool, trace trace.Tracer, gmailUsername, gmailPsw string) *Repository {
 	return &Repository{
 		UserRepo:  user.NewUserRepository(db, debug, trace),
-		EmailRepo: email.NewEmailRepo(trace),
+		EmailRepo: email.NewEmailRepo(trace, gmailUsername, gmailPsw),
 	}
 }
