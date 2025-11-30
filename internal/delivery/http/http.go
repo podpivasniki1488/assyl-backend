@@ -33,6 +33,8 @@ var validate = validator.New()
 func (h *httpDelivery) Start(port string) {
 	h.registerHandler()
 
+	h.echoApp.Debug = true
+
 	if err := h.echoApp.Start(port); err != nil {
 		h.logger.Error("Failed to start server", "error", err)
 	}
