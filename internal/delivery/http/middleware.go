@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 )
@@ -31,4 +32,10 @@ func (h *httpDelivery) handleErrResponse(c echo.Context, err error) error {
 	h.logger.Error("internal error %s", err.Error())
 
 	return c.JSON(http.StatusInternalServerError, ErrorResponse("internal error"))
+}
+
+func (h *httpDelivery) registerJWTMiddleware() func(next echo.HandlerFunc) echo.HandlerFunc {
+	return echojwt.WithConfig(echojwt.Config{
+		SigningKey: []byte(h.jwtSecret),
+	})
 }

@@ -5,3 +5,6 @@ protoc:
 
 swagger:
 	swag init -g ./cmd/main.go
+
+swagger-fmt:
+	swag fmt

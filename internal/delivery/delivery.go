@@ -13,8 +13,8 @@ type Delivery struct {
 	// maybe ws
 }
 
-func NewDelivery(logger *slog.Logger, service *service.Service, trace trace.Tracer) *Delivery {
+func NewDelivery(logger *slog.Logger, service *service.Service, trace trace.Tracer, jwtSecret string) *Delivery {
 	return &Delivery{
-		Http: http.NewHTTPDelivery(logger, service, trace),
+		Http: http.NewHTTPDelivery(logger, service, trace, jwtSecret),
 	}
 }
