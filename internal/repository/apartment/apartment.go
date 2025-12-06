@@ -32,14 +32,16 @@ func (a *apartment) CreateApartment(ctx context.Context, req model.Apartment) (*
 		Where("door_number = ?", req.DoorNumber).
 		First(&res)
 
-	if err := query.Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, model.ErrDBUnexpected.WithErr(query.Error)
-	}
+	if err := query.Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, model.ErrDBUnexpected.WithErr(query.Error)
+		}
 
-	if err := a.db.WithContext(ctx).Create(&req).Error; err != nil {
-		return nil, model.ErrDBUnexpected.WithErr(err)
-	}
+		if err := a.db.WithContext(ctx).Create(&req).Error; err != nil {
+			return nil, model.ErrDBUnexpected.WithErr(err)
+		}
 
+	}
 	return &res, nil
 }
 
