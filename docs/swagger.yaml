@@ -27,6 +27,16 @@ definitions:
     - otp_code
     - username
     type: object
+  http.loginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
   http.registerRequest:
     properties:
       first_name:
@@ -80,6 +90,36 @@ paths:
           schema:
             $ref: '#/definitions/http.DefaultResponse-error'
       summary: Confirm registration
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Заходит по логину отдавая jwt токен.
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успех
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      summary: Login into account
       tags:
       - auth
   /auth/register:

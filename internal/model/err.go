@@ -31,10 +31,13 @@ func (e AppError) WithErr(err error) AppError {
 }
 
 var (
-	ErrDBUnexpected      = AppError{HttpStatusCode: http.StatusInternalServerError, Message: "unexpected db error"}
+	ErrDBUnexpected   = AppError{HttpStatusCode: http.StatusInternalServerError, Message: "unexpected db error"}
+	ErrRecordNotFound = AppError{HttpStatusCode: http.StatusNotFound, Message: "record not found"}
+
 	ErrPasswordMatch     = AppError{HttpStatusCode: http.StatusUnauthorized, Message: "invalid username or password"}
 	ErrUserNotFound      = AppError{HttpStatusCode: http.StatusNotFound, Message: "user not found"}
 	ErrUserAlreadyExists = AppError{HttpStatusCode: http.StatusBadRequest, Message: "user already exists"}
-	ErrRecordNotFound    = AppError{HttpStatusCode: http.StatusNotFound, Message: "record not found"}
 	ErrUserNotApproved   = AppError{HttpStatusCode: http.StatusUnauthorized, Message: "user not approved"}
+
+	ErrApartmentNotFound = AppError{HttpStatusCode: http.StatusNotFound, Message: "allocation not found"}
 )

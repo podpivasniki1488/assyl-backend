@@ -16,16 +16,17 @@ func (h *httpDelivery) registerAuthHandlers(v1 *echo.Group) {
 }
 
 // confirm godoc
-// @Summary      Confirm registration
-// @Description  Подтверждает пользователя по OTP-коду.
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        request  body      confirmRequest       true  "Confirm request"
-// @Success      204      "Подтверждение прошло успешно"
-// @Failure      400      {object}  DefaultResponse[error]  "Невалидный запрос"
-// @Failure      500      {object}  DefaultResponse[error]  "Внутренняя ошибка сервера"
-// @Router       /auth/confirm [post]
+//
+//	@Summary		Confirm registration
+//	@Description	Подтверждает пользователя по OTP-коду.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	confirmRequest	true	"Confirm request"
+//	@Success		204		"Подтверждение прошло успешно"
+//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
+//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
+//	@Router			/auth/confirm [post]
 func (h *httpDelivery) confirm(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -48,6 +49,18 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 	return c.JSON(http.StatusNoContent, nil)
 }
 
+// login godoc
+//
+//	@Summary		Login into account
+//	@Description	Заходит по логину отдавая jwt токен.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		loginRequest			true	"Login request"
+//	@Success		200		{object}	DefaultResponse[string]	"Успех"
+//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
+//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
+//	@Router			/auth/login [post]
 func (h *httpDelivery) login(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.login")
 	defer span.End()
@@ -76,16 +89,17 @@ func (h *httpDelivery) login(c echo.Context) error {
 }
 
 // register godoc
-// @Summary      Register new user
-// @Description  Регистрирует нового пользователя и отправляет OTP на указанный username (телефон/почта).
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        request  body      registerRequest      true  "Register request"
-// @Success      200      {object}  DefaultResponse[string] "Успешная регистрация"
-// @Failure      400      {object}  DefaultResponse[error]  "Невалидный запрос"
-// @Failure      500      {object}  DefaultResponse[error]  "Внутренняя ошибка сервера"
-// @Router       /auth/register [post]
+//
+//	@Summary		Register new user
+//	@Description	Регистрирует нового пользователя и отправляет OTP на указанный username (телефон/почта).
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		registerRequest			true	"Register request"
+//	@Success		200		{object}	DefaultResponse[string]	"Успешная регистрация"
+//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
+//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
+//	@Router			/auth/register [post]
 func (h *httpDelivery) register(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.register")
 	defer span.End()

@@ -13,6 +13,7 @@ type Service struct {
 	UserValidator  UserValidator
 	UserManagement UserManagement
 	Auth           Auth
+	Apartment      Apartment
 }
 
 type Auth interface {
@@ -29,6 +30,11 @@ type UserManagement interface {
 	DeleteUserByEmail(ctx context.Context, email string) error
 }
 
+type Apartment interface {
+	CreateApartment(ctx context.Context, req model.Apartment) error
+	GetApartment(ctx context.Context, req model.Apartment) (*model.Apartment, error)
+}
+
 func NewService(
 	repo *repository.Repository,
 	tracer trace.Tracer,
@@ -39,5 +45,6 @@ func NewService(
 		UserValidator:  NewUserValidator(repo),
 		UserManagement: NewUserManagement(repo),
 		Auth:           NewAuthService(repo, secretKey, tracer, redisCli),
+		Apartment:      NewApartmentService(repo, tracer),
 	}
 }

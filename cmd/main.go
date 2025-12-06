@@ -31,12 +31,16 @@ import (
 
 // Package main Assyl Backend API.
 //
-// @title           Assyl Backend API
-// @version         1.0
-// @description     API для работы с приложением для ЖК.
+//	@title						Assyl Backend API
+//	@version					1.0
+//	@description				API для работы с приложением для ЖК.
 //
-// @host      assyl-c9b2197f0ace.herokuapp.com
-// @BasePath  /v1
+//	@host						assyl-c9b2197f0ace.herokuapp.com
+//	@BasePath					/v1
+//
+//	@securityDefinitions.apikey	JWT
+//	@in							header
+//	@name						Authorization
 func main() {
 	// get some envs somewhere
 	ctx, cancel := context.WithCancel(context.Background())
@@ -81,7 +85,7 @@ func main() {
 
 	srv := service.NewService(repo, tracer, rdb, cfg.JwtSecretKey)
 
-	d := delivery.NewDelivery(logger, srv, tracer)
+	d := delivery.NewDelivery(logger, srv, tracer, cfg.JwtSecretKey)
 
 	port := cfg.HttpPort
 
