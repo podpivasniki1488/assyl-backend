@@ -39,5 +39,6 @@ var (
 	ErrUserAlreadyExists = AppError{HttpStatusCode: http.StatusBadRequest, Message: "user already exists"}
 	ErrUserNotApproved   = AppError{HttpStatusCode: http.StatusUnauthorized, Message: "user not approved"}
 
-	ErrApartmentNotFound = AppError{HttpStatusCode: http.StatusNotFound, Message: "allocation not found"}
+	ErrApartmentNotFound     = AppError{HttpStatusCode: http.StatusNotFound, Message: "allocation not found"}
+	ErrApartmentAlreadyBound = AppError{HttpStatusCode: http.StatusConflict, Message: "apartment already bound"}
 )

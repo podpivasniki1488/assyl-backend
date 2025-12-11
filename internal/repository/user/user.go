@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
@@ -25,14 +26,14 @@ func NewUserRepository(db *gorm.DB, debug bool, tracer trace.Tracer) UserRepo {
 	}
 }
 
-func (u *userRepository) FindById(ctx context.Context, id int64) (*model.User, error) {
+func (u *userRepository) FindById(ctx context.Context, id uuid.UUID) (*model.User, error) {
 	ctx, span := u.tracer.Start(ctx, "userRepository.FindById")
 	defer span.End()
 
 	var user model.User
 	query := u.db.
 		WithContext(ctx).
-		Where("id = ?", id).
+		Where("id = ?", id.String()).
 		Find(&user)
 
 	if u.debug {
