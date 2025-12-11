@@ -140,17 +140,17 @@ func (h *httpDelivery) bindApartment(c echo.Context) error {
 
 	token, ok := c.Get("user").(*jwt.Token)
 	if !ok {
-		return c.JSON(http.StatusBadRequest, "JWT token missing or invalid")
+		return c.JSON(http.StatusUnauthorized, "JWT token missing or invalid")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return c.JSON(http.StatusBadRequest, "failed to cast claims")
+		return c.JSON(http.StatusUnauthorized, "failed to cast claims")
 	}
 
 	username, ok := claims["username"].(string)
 	if !ok {
-		return c.JSON(http.StatusBadRequest, "failed to cast username")
+		return c.JSON(http.StatusUnauthorized, "failed to cast username")
 	}
 
 	if err := h.service.UserManagement.BindApartmentToUser(ctx, username, req.ApartmentId); err != nil {

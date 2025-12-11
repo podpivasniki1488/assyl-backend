@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
+	"github.com/podpivasniki1488/assyl-backend/protopb"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -39,10 +41,29 @@ func (u *userManagement) BindApartmentToUser(ctx context.Context, username strin
 		return err
 	}
 
-	ap.OwnerId = currUser.ID
+	if err = u.checkUserAccess(ctx, *currUser, *ap); err != nil {
+		return err
+	}
+
+	ap.OwnerId = &currUser.ID
 
 	if err = u.repo.ApartmentRepo.UpdateApartment(ctx, ap); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (u *userManagement) checkUserAccess(ctx context.Context, currUser model.User, apartment model.Apartment) error {
+	ctx, span := u.tracer.Start(ctx, "userManagement_checkUserAccess")
+	defer span.End()
+
+	if currUser.RoleID == protopb.Role_ADMIN || currUser.RoleID == protopb.Role_GOD {
+		return nil
+	}
+
+	if apartment.OwnerId != nil && currUser.ID != *apartment.OwnerId {
+		return model.ErrApartmentAlreadyBound
 	}
 
 	return nil
