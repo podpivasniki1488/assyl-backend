@@ -32,7 +32,7 @@ func (a *apartment) GetApartment(ctx context.Context, req model.Apartment) (*mod
 	ctx, span := a.trace.Start(ctx, "apartmentService.GetApartment")
 	defer span.End()
 
-	res, err := a.repo.ApartmentRepo.GetApartment(ctx, req.Floor, req.DoorNumber)
+	res, err := a.repo.ApartmentRepo.GetApartmentByFloorAndNum(ctx, req.Floor, req.DoorNumber)
 	if err != nil {
 		return nil, err
 	}

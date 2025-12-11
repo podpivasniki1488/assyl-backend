@@ -83,6 +83,75 @@ const docTemplate = `{
                 }
             }
         },
+        "/apartment/bind": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Привязывает квартиру к текущему авторизованному пользователю.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "apartment"
+                ],
+                "summary": "Bind apartment to user",
+                "parameters": [
+                    {
+                        "description": "Bind apartment request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.bindApartmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Квартира успешно привязана к пользователю",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный запрос (невалидный JSON или тело)",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован (отсутствует или неверный JWT)",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "404": {
+                        "description": "Квартира не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "409": {
+                        "description": "Квартира уже привязана к пользователю",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/apartment/create": {
             "post": {
                 "security": [
@@ -323,6 +392,17 @@ const docTemplate = `{
                 }
             }
         },
+        "http.bindApartmentRequest": {
+            "type": "object",
+            "required": [
+                "apartment_id"
+            ],
+            "properties": {
+                "apartment_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.confirmRequest": {
             "type": "object",
             "required": [
@@ -405,6 +485,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "owner_id": {
                     "type": "string"
                 }
             }

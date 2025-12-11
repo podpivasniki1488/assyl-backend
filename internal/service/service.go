@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/redis/go-redis/v9"
@@ -28,6 +29,7 @@ type UserValidator interface {
 
 type UserManagement interface {
 	DeleteUserByEmail(ctx context.Context, email string) error
+	BindApartmentToUser(ctx context.Context, username string, apartmentId uuid.UUID) error
 }
 
 type Apartment interface {
@@ -43,7 +45,7 @@ func NewService(
 ) *Service {
 	return &Service{
 		UserValidator:  NewUserValidator(repo),
-		UserManagement: NewUserManagement(repo),
+		UserManagement: NewUserManagement(repo, tracer),
 		Auth:           NewAuthService(repo, secretKey, tracer, redisCli),
 		Apartment:      NewApartmentService(repo, tracer),
 	}

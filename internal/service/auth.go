@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/protopb"
@@ -158,7 +157,6 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 		UsernameType: usernameType,
 		IsApproved:   false,
 		RoleID:       protopb.Role_GUEST,
-		ApartmentID:  uuid.Nil,
 	}
 
 	if err = a.repo.UserRepo.CreateUser(ctx, &u); err != nil {

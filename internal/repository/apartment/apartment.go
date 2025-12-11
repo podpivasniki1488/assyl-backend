@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
@@ -48,7 +49,7 @@ func (a *apartment) CreateApartment(ctx context.Context, req model.Apartment) (*
 	return &res, nil
 }
 
-func (a *apartment) GetApartment(ctx context.Context, floor uint8, doorNum uint16) (*model.Apartment, error) {
+func (a *apartment) GetApartmentByFloorAndNum(ctx context.Context, floor uint8, doorNum uint16) (*model.Apartment, error) {
 	ctx, span := a.tracer.Start(ctx, "apartmentRepo.GetApartment")
 	defer span.End()
 
@@ -67,4 +68,41 @@ func (a *apartment) GetApartment(ctx context.Context, floor uint8, doorNum uint1
 	}
 
 	return &res, nil
+}
+
+func (a *apartment) GetApartmentByID(ctx context.Context, id uuid.UUID) (*model.Apartment, error) {
+	ctx, span := a.tracer.Start(ctx, "apartmentRepo.GetApartmentByID")
+	defer span.End()
+
+	var res model.Apartment
+	query := a.db.
+		WithContext(ctx).
+		Where("id = ?", id).
+		First(&res)
+
+	if query.Error != nil {
+		if errors.Is(query.Error, gorm.ErrRecordNotFound) {
+			return nil, model.ErrApartmentNotFound
+		}
+
+		return nil, model.ErrDBUnexpected.WithErr(query.Error)
+	}
+
+	return &res, nil
+}
+
+func (a *apartment) UpdateApartment(ctx context.Context, updatedApp *model.Apartment) error {
+	ctx, span := a.tracer.Start(ctx, "apartmentRepo.UpdateApartment")
+	defer span.End()
+
+	findApp := a.db.
+		WithContext(ctx).
+		Where("id = ?", updatedApp.Id).
+		Updates(updatedApp)
+
+	if findApp.Error != nil {
+		return model.ErrDBUnexpected.WithErr(findApp.Error)
+	}
+
+	return nil
 }
