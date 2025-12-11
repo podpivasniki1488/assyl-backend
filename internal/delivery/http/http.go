@@ -13,18 +13,20 @@ import (
 )
 
 type httpDelivery struct {
-	echoApp *echo.Echo
-	logger  *slog.Logger
-	service *service.Service
-	tracer  trace.Tracer
+	echoApp   *echo.Echo
+	logger    *slog.Logger
+	service   *service.Service
+	tracer    trace.Tracer
+	jwtSecret string
 }
 
-func NewHTTPDelivery(logger *slog.Logger, s *service.Service, tracer trace.Tracer) Http {
+func NewHTTPDelivery(logger *slog.Logger, s *service.Service, tracer trace.Tracer, jwtSecret string) Http {
 	return &httpDelivery{
-		echoApp: echo.New(),
-		logger:  logger,
-		service: s,
-		tracer:  tracer,
+		echoApp:   echo.New(),
+		logger:    logger,
+		service:   s,
+		tracer:    tracer,
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -46,6 +48,7 @@ func (h *httpDelivery) registerHandler() {
 	v1.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	h.registerAuthHandlers(v1)
+	h.registerApartmentHandlers(v1)
 }
 
 func (h *httpDelivery) Stop(ctx context.Context) {

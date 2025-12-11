@@ -8,6 +8,15 @@ definitions:
       status:
         type: string
     type: object
+  http.DefaultResponse-model_Apartment:
+    properties:
+      data:
+        $ref: '#/definitions/model.Apartment'
+      error_message:
+        type: string
+      status:
+        type: string
+    type: object
   http.DefaultResponse-string:
     properties:
       data:
@@ -25,6 +34,26 @@ definitions:
         type: string
     required:
     - otp_code
+    - username
+    type: object
+  http.createApartmentRequest:
+    properties:
+      door_num:
+        type: integer
+      floor:
+        type: integer
+    required:
+    - door_num
+    - floor
+    type: object
+  http.loginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
     - username
     type: object
   http.registerRequest:
@@ -47,6 +76,15 @@ definitions:
     - password
     - username
     type: object
+  model.Apartment:
+    properties:
+      door_number:
+        type: integer
+      floor:
+        type: integer
+      id:
+        type: string
+    type: object
 host: assyl-c9b2197f0ace.herokuapp.com
 info:
   contact: {}
@@ -54,6 +92,90 @@ info:
   title: Assyl Backend API
   version: "1.0"
 paths:
+  /apartment:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает квартиру по этажу и номеру двери.
+      parameters:
+      - description: Этаж
+        in: query
+        name: floor
+        required: true
+        type: integer
+      - description: Номер двери
+        in: query
+        name: door_number
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Квартира найдена
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-model_Apartment'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "404":
+          description: Квартира не найдена
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - JWT: []
+      summary: Get apartment
+      tags:
+      - apartment
+  /apartment/create:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую квартиру.
+      parameters:
+      - description: Create apartment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.createApartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Квартира успешно создана
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "409":
+          description: Квартира уже существует (конфликт)
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - JWT: []
+      summary: Create apartment
+      tags:
+      - apartment
   /auth/confirm:
     post:
       consumes:
@@ -80,6 +202,36 @@ paths:
           schema:
             $ref: '#/definitions/http.DefaultResponse-error'
       summary: Confirm registration
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Заходит по логину отдавая jwt токен.
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успех
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      summary: Login into account
       tags:
       - auth
   /auth/register:
@@ -113,4 +265,9 @@ paths:
       summary: Register new user
       tags:
       - auth
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
