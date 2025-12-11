@@ -40,6 +40,10 @@ func (h *httpDelivery) getApartment(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
+	if req.DoorNumber == nil || req.Floor == nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("Missing mandatory field: doorNumber, floor"))
+	}
+
 	res, err := h.service.Apartment.GetApartment(ctx, model.Apartment{
 		DoorNumber: *req.DoorNumber,
 		Floor:      *req.Floor,
@@ -62,12 +66,12 @@ func (h *httpDelivery) getApartment(c echo.Context) error {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			request  body      createApartmentRequest  true  "Create apartment request"
-//	@Success		201      {object}  DefaultResponse[string]         "Квартира успешно создана"
-//	@Failure		400      {object}  DefaultResponse[error]          "Невалидный запрос"
-//	@Failure		401      {object}  DefaultResponse[error]          "Неавторизован"
-//	@Failure		409      {object}  DefaultResponse[error]          "Квартира уже существует (конфликт)"
-//	@Failure		500      {object}  DefaultResponse[error]          "Внутренняя ошибка сервера"
+//	@Param			request	body		createApartmentRequest	true	"Create apartment request"
+//	@Success		201		{object}	DefaultResponse[string]	"Квартира успешно создана"
+//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
+//	@Failure		401		{object}	DefaultResponse[error]	"Неавторизован"
+//	@Failure		409		{object}	DefaultResponse[error]	"Квартира уже существует (конфликт)"
+//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
 //	@Router			/apartment/create [post]
 func (h *httpDelivery) createApartment(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.createApartment")

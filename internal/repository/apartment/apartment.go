@@ -41,7 +41,10 @@ func (a *apartment) CreateApartment(ctx context.Context, req model.Apartment) (*
 			return nil, model.ErrDBUnexpected.WithErr(err)
 		}
 
+		return &req, nil
+
 	}
+
 	return &res, nil
 }
 
