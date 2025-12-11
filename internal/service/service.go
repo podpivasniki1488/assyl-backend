@@ -15,6 +15,7 @@ type Service struct {
 	UserManagement UserManagement
 	Auth           Auth
 	Apartment      Apartment
+	Reservation    Reservation
 }
 
 type Auth interface {
@@ -37,6 +38,11 @@ type Apartment interface {
 	GetApartment(ctx context.Context, req model.Apartment) (*model.Apartment, error)
 }
 
+type Reservation interface {
+	MakeReservation(ctx context.Context, req *model.CinemaReservation) error
+	GetFilteredReservations(ctx context.Context, req model.CinemaReservation, userID uuid.UUID) ([]model.CinemaReservation, error)
+}
+
 func NewService(
 	repo *repository.Repository,
 	tracer trace.Tracer,
@@ -48,5 +54,6 @@ func NewService(
 		UserManagement: NewUserManagement(repo, tracer),
 		Auth:           NewAuthService(repo, secretKey, tracer, redisCli),
 		Apartment:      NewApartmentService(repo, tracer),
+		Reservation:    NewReservation(repo, tracer),
 	}
 }

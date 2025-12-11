@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/protopb"
@@ -88,7 +89,7 @@ func (a *authService) Login(ctx context.Context, user model.User) (token string,
 		return "", model.ErrPasswordMatch
 	}
 
-	token, err = a.generateJwtToken(u.Username, u.RoleID)
+	token, err = a.generateJwtToken(u.Username, u.RoleID, u.ID)
 	if err != nil {
 		return "", err
 	}
@@ -182,10 +183,11 @@ func (a *authService) isPhone(str string) bool {
 	return true
 }
 
-func (a *authService) generateJwtToken(username string, role protopb.Role) (string, error) {
+func (a *authService) generateJwtToken(username string, role protopb.Role, userId uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"username": username,
+			"user_id":  userId,
 			"role":     role.String(),
 			"issuer":   "jeffry's backend",
 		})

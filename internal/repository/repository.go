@@ -4,6 +4,7 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/apartment"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/email"
+	"github.com/podpivasniki1488/assyl-backend/internal/repository/reservation"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/user"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/driver/postgres"
@@ -11,9 +12,10 @@ import (
 )
 
 type Repository struct {
-	UserRepo      user.UserRepo
-	EmailRepo     email.EmailRepo
-	ApartmentRepo apartment.ApartmentRepo
+	UserRepo        user.UserRepo
+	EmailRepo       email.EmailRepo
+	ApartmentRepo   apartment.ApartmentRepo
+	ReservationRepo reservation.ReservationRepo
 }
 
 func MustInitDb(dsn string) *gorm.DB {
@@ -39,8 +41,9 @@ func MustInitDb(dsn string) *gorm.DB {
 
 func NewRepository(db *gorm.DB, debug bool, trace trace.Tracer, gmailUsername, gmailPsw string) *Repository {
 	return &Repository{
-		UserRepo:      user.NewUserRepository(db, debug, trace),
-		EmailRepo:     email.NewEmailRepo(trace, gmailUsername, gmailPsw),
-		ApartmentRepo: apartment.NewApartmentRepo(db, trace),
+		UserRepo:        user.NewUserRepository(db, debug, trace),
+		EmailRepo:       email.NewEmailRepo(trace, gmailUsername, gmailPsw),
+		ApartmentRepo:   apartment.NewApartmentRepo(db, trace),
+		ReservationRepo: reservation.NewReservationRepository(db, trace),
 	}
 }

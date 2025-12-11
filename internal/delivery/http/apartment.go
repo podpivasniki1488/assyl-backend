@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
@@ -14,7 +13,7 @@ func (h *httpDelivery) registerApartmentHandlers(v1 *echo.Group) {
 	apartment.Use(h.registerJWTMiddleware())
 
 	apartment.POST("/create", h.createApartment)
-	apartment.POST("/bind", h.bindApartment)
+	apartment.POST("/bind", h.bindApartment, h.getJWTData())
 	apartment.GET("", h.getApartment)
 }
 
@@ -138,19 +137,9 @@ func (h *httpDelivery) bindApartment(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	token, ok := c.Get("user").(*jwt.Token)
+	username, ok := c.Get("username").(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, "JWT token missing or invalid")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return c.JSON(http.StatusUnauthorized, "failed to cast claims")
-	}
-
-	username, ok := claims["username"].(string)
-	if !ok {
-		return c.JSON(http.StatusUnauthorized, "failed to cast username")
+		return c.JSON(http.StatusBadRequest, ErrorResponse("username not found in context"))
 	}
 
 	if err := h.service.UserManagement.BindApartmentToUser(ctx, username, req.ApartmentId); err != nil {

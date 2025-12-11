@@ -49,6 +49,7 @@ func (h *httpDelivery) registerHandler() {
 
 	h.registerAuthHandlers(v1)
 	h.registerApartmentHandlers(v1)
+	h.registerReservationHandlers(v1)
 }
 
 func (h *httpDelivery) Stop(ctx context.Context) {
