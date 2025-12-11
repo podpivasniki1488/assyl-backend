@@ -40,7 +40,8 @@ type Apartment interface {
 
 type Reservation interface {
 	MakeReservation(ctx context.Context, req *model.CinemaReservation) error
-	GetFilteredReservations(ctx context.Context, req model.CinemaReservation, userID uuid.UUID) ([]model.CinemaReservation, error)
+	GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
+	GetUnfilteredReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 }
 
 func NewService(

@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/protopb"
@@ -22,11 +21,11 @@ func NewReservation(repo *repository.Repository, tracer trace.Tracer) Reservatio
 	}
 }
 
-func (r *reservation) GetFilteredReservations(ctx context.Context, req model.CinemaReservation, userID uuid.UUID) ([]model.CinemaReservation, error) {
+func (r *reservation) GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error) {
 	ctx, span := r.tracer.Start(ctx, "reservation.GetReservation")
 	defer span.End()
 
-	user, err := r.repo.UserRepo.FindById(ctx, userID)
+	user, err := r.repo.UserRepo.FindById(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +39,21 @@ func (r *reservation) GetFilteredReservations(ctx context.Context, req model.Cin
 	}
 
 	return r.filterReservation(ctx, reservations, *user)
+}
+
+func (r *reservation) GetUnfilteredReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error) {
+	ctx, span := r.tracer.Start(ctx, "reservation.GetReservation")
+	defer span.End()
+
+	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.CinemaReservation{
+		From: req.From,
+		To:   req.To,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return reservations, nil
 }
 
 func (r *reservation) filterReservation(ctx context.Context, reservations []model.CinemaReservation, user model.User) ([]model.CinemaReservation, error) {

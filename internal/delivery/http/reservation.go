@@ -14,7 +14,7 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 
 	reservation.Use(h.registerJWTMiddleware())
 	reservation.POST("", h.createReservation, h.getJWTData())
-	reservation.GET("", h.getReservation, h.getJWTData())
+	reservation.GET("", h.getReservation)
 }
 
 func (h *httpDelivery) getReservation(c echo.Context) error {
@@ -26,17 +26,11 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	userId, ok := c.Get("user_id").(uuid.UUID)
-	if !ok {
-		return c.JSON(http.StatusUnauthorized, "failed to get user id from context")
-	}
-
-	resp, err := h.service.Reservation.GetFilteredReservations(ctx, model.CinemaReservation{
-		UserID:    userId,
+	resp, err := h.service.Reservation.GetUnfilteredReservations(ctx, model.CinemaReservation{
 		From:      *req.From,
 		To:        *req.To,
 		PeopleNum: *req.PeopleNum,
-	}, userId)
+	})
 	if err != nil {
 		return h.handleErrResponse(c, err)
 	}
