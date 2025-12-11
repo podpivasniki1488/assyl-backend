@@ -32,6 +32,7 @@ func MustInitDb(dsn string) *gorm.DB {
 	if err = db.AutoMigrate(
 		&model.User{},
 		&model.Apartment{},
+		&model.CinemaReservation{},
 	); err != nil {
 		panic(err)
 	}

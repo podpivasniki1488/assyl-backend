@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
@@ -60,7 +59,7 @@ func (h *httpDelivery) getJWTData() func(next echo.HandlerFunc) echo.HandlerFunc
 				return c.JSON(http.StatusUnauthorized, "failed to cast username")
 			}
 
-			userId, ok := claims["user_id"].(uuid.UUID)
+			userId, ok := claims["user_id"].(string)
 			if !ok {
 				return c.JSON(http.StatusUnauthorized, "failed to cast user_id")
 			}

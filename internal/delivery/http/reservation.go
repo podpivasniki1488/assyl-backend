@@ -26,6 +26,10 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
+	if req.From == nil || req.To == nil || req.PeopleNum == nil {
+		return echo.NewHTTPError(http.StatusBadRequest, ErrorResponse("from, to, and people_num are required"))
+	}
+
 	resp, err := h.service.Reservation.GetUnfilteredReservations(ctx, model.CinemaReservation{
 		From:      *req.From,
 		To:        *req.To,
@@ -54,22 +58,27 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	userId, ok := c.Get("user_id").(uuid.UUID)
+	userId, ok := c.Get("user_id").(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, "failed to get user_id from context")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("failed to get user_id from context"))
 	}
 
-	if err := h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
+	parsed, err := uuid.Parse(userId)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse("invalid user id"))
+	}
+
+	if err = h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
 		From:      req.From,
 		To:        req.To,
 		PeopleNum: req.PeopleNum,
-		UserID:    userId,
+		UserID:    parsed,
 	}); err != nil {
 		return h.handleErrResponse(c, err)
 	}
 
 	return c.JSON(http.StatusCreated, DefaultResponse[string]{
-		Status: "ok",
+		Status: "success",
 		Data:   "",
 	})
 }

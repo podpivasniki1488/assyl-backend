@@ -41,6 +41,10 @@ func (r *reservationRepository) GetByFilters(ctx context.Context, req *model.Cin
 
 	query := r.db.WithContext(ctx)
 
+	if !req.From.IsZero() && !req.To.IsZero() {
+		query = query.Where("from < ? AND to > ?", req.From, req.To)
+	}
+
 	if !req.From.IsZero() {
 		query = query.Where("from >= ?", req.From)
 	}
@@ -56,8 +60,6 @@ func (r *reservationRepository) GetByFilters(ctx context.Context, req *model.Cin
 	if req.UserID != uuid.Nil {
 		query = query.Where("user_id = ?", req.UserID)
 	}
-
-	query = query.Order("created_at DESC")
 
 	var resp []model.CinemaReservation
 	if err := query.Find(&resp).Error; err != nil {
@@ -76,10 +78,6 @@ func (r *reservationRepository) GetByUserID(ctx context.Context, userID uuid.UUI
 
 	if query.Error != nil {
 		return nil, model.ErrDBUnexpected.WithErr(query.Error)
-	}
-
-	if len(resp) == 0 {
-		return nil, model.ErrReservationNotFound
 	}
 
 	return resp, nil

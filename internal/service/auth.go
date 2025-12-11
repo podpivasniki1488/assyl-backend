@@ -187,7 +187,7 @@ func (a *authService) generateJwtToken(username string, role protopb.Role, userI
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"username": username,
-			"user_id":  userId,
+			"user_id":  userId.String(),
 			"role":     role.String(),
 			"issuer":   "jeffry's backend",
 		})
