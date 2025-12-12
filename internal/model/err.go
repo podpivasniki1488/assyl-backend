@@ -41,4 +41,6 @@ var (
 
 	ErrApartmentNotFound     = AppError{HttpStatusCode: http.StatusNotFound, Message: "allocation not found"}
 	ErrApartmentAlreadyBound = AppError{HttpStatusCode: http.StatusConflict, Message: "apartment already bound"}
+	ErrReservationNotFound   = AppError{HttpStatusCode: http.StatusNotFound, Message: "record not found"}
+	ErrCinemaBusy            = AppError{HttpStatusCode: http.StatusConflict, Message: "cinema busy"}
 )

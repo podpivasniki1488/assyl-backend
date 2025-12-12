@@ -13,5 +13,6 @@ type User struct {
 	UsernameType int          `gorm:"type:int;not null" default:"user" json:"username_type"`
 	Password     string       `gorm:"type:varchar;not null" json:"password"`
 	IsApproved   bool         `gorm:"type:boolean;not null" default:"false" json:"is_approved"`
+	ApartmentID  uuid.UUID    `gorm:"type:uuid;OnDelete:SET NULL" json:"apartment_id"`
 	RoleID       protopb.Role `gorm:"type:smallint;not null" json:"role_id"`
 }
