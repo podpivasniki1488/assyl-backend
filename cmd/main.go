@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/joho/godotenv"
 	"github.com/podpivasniki1488/assyl-backend/internal/delivery"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
@@ -105,9 +104,9 @@ func main() {
 }
 
 func mustReadConfig() Config {
-	if err := godotenv.Load(); err != nil {
-		panic(err)
-	}
+	//if err := godotenv.Load(); err != nil {
+	//	panic(err)
+	//}
 
 	cfg := Config{
 		RedisDSN:      os.Getenv("REDIS_DSN"),
