@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 )
@@ -15,10 +16,10 @@ type apartment struct {
 	tracer trace.Tracer
 }
 
-func NewApartmentRepo(db *gorm.DB, tracer trace.Tracer) ApartmentRepo {
+func NewApartmentRepo(db *gorm.DB) ApartmentRepo {
 	return &apartment{
 		db:     db,
-		tracer: tracer,
+		tracer: otel.Tracer("apartmentRepo"),
 	}
 }
 

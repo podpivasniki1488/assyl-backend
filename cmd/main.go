@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 	"github.com/podpivasniki1488/assyl-backend/internal/delivery"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
@@ -65,14 +66,15 @@ func main() {
 		_ = shutdownOTel(ctx)
 	}()
 
-	tracer := otel.Tracer("global")
-
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisDSN,
 		Username: cfg.RedisUsername,
 		Password: cfg.RedisPassword,
 		DB:       0,
 	})
+	if err = rdb.Ping(ctx).Err(); err != nil {
+		panic(err)
+	}
 
 	txtHandler := slog.NewTextHandler(os.Stdin, nil)
 	logger := slog.New(txtHandler)
@@ -81,11 +83,11 @@ func main() {
 
 	db := repository.MustInitDb(cfg.DBDSN)
 
-	repo := repository.NewRepository(db, debug, tracer, cfg.GmailUsername, cfg.GmailPassword)
+	repo := repository.NewRepository(db, debug, cfg.GmailUsername, cfg.GmailPassword)
 
-	srv := service.NewService(repo, tracer, rdb, cfg.JwtSecretKey)
+	srv := service.NewService(repo, rdb, cfg.JwtSecretKey)
 
-	d := delivery.NewDelivery(logger, srv, tracer, cfg.JwtSecretKey)
+	d := delivery.NewDelivery(logger, srv, cfg.JwtSecretKey)
 
 	port := cfg.HttpPort
 
@@ -103,6 +105,10 @@ func main() {
 }
 
 func mustReadConfig() Config {
+	if err := godotenv.Load(); err != nil {
+		panic(err)
+	}
+
 	cfg := Config{
 		RedisDSN:      os.Getenv("REDIS_DSN"),
 		RedisUsername: os.Getenv("REDIS_USERNAME"),
@@ -129,7 +135,7 @@ type Config struct {
 	DBDSN         string `validate:"required"`
 	JwtSecretKey  string `validate:"required"`
 	Debug         bool
-	GmailUsername string `validate:"required,email"`
+	GmailUsername string `validate:"required"`
 	GmailPassword string `validate:"required"`
 	HttpPort      string `validate:"required"`
 }

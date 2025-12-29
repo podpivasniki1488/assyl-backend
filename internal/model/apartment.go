@@ -8,3 +8,7 @@ type Apartment struct {
 	DoorNumber uint16     `gorm:"not null;uniqueIndex:idx_floor_door" json:"door_number"`
 	OwnerId    *uuid.UUID `gorm:"type:uuid;constraint:OnDelete:SET NULL;" json:"owner_id,omitempty"`
 }
+
+func (a *Apartment) TableName() string {
+	return "apartments"
+}

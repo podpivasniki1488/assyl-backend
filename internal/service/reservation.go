@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/protopb"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -14,9 +17,9 @@ type reservation struct {
 	repo   *repository.Repository
 }
 
-func NewReservation(repo *repository.Repository, tracer trace.Tracer) Reservation {
+func NewReservation(repo *repository.Repository) Reservation {
 	return &reservation{
-		tracer: tracer,
+		tracer: otel.Tracer("reservationService"),
 		repo:   repo,
 	}
 }
@@ -30,9 +33,12 @@ func (r *reservation) GetUserReservations(ctx context.Context, req model.CinemaR
 		return nil, err
 	}
 
-	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.CinemaReservation{
-		From: req.From,
-		To:   req.To,
+	isApproved := true
+
+	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
+		StartTimeFrom: req.StartTime,
+		EndTimeTo:     req.EndTime,
+		IsApproved:    &isApproved,
 	})
 	if err != nil {
 		return nil, err
@@ -45,9 +51,9 @@ func (r *reservation) GetUnfilteredReservations(ctx context.Context, req model.C
 	ctx, span := r.tracer.Start(ctx, "reservation.GetReservation")
 	defer span.End()
 
-	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.CinemaReservation{
-		From: req.From,
-		To:   req.To,
+	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
+		StartTimeFrom: req.StartTime,
+		EndTimeTo:     req.EndTime,
 	})
 	if err != nil {
 		return nil, err
@@ -78,9 +84,21 @@ func (r *reservation) MakeReservation(ctx context.Context, req *model.CinemaRese
 	ctx, span := r.tracer.Start(ctx, "reservation.MakeReservation")
 	defer span.End()
 
-	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.CinemaReservation{
-		From: req.From,
-		To:   req.To,
+	if req.PeopleNum > 12 {
+		return model.ErrTooManyPeople
+	}
+
+	if req.StartTime.After(req.EndTime) {
+		return model.ErrInvalidInput
+	}
+
+	if req.EndTime.Sub(req.StartTime) > 12*time.Hour {
+		return model.ErrReservationImpossible
+	}
+
+	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
+		StartTimeFrom: req.StartTime,
+		EndTimeTo:     req.EndTime,
 	})
 	if err != nil {
 		return err
@@ -90,7 +108,31 @@ func (r *reservation) MakeReservation(ctx context.Context, req *model.CinemaRese
 		return model.ErrCinemaBusy
 	}
 
+	req.IsApproved = false
+
 	if err = r.repo.ReservationRepo.CreateReservation(ctx, req); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *reservation) ApproveReservation(ctx context.Context, id uuid.UUID) error {
+	ctx, span := r.tracer.Start(ctx, "reservation.ApproveReservation")
+	defer span.End()
+
+	res, err := r.repo.ReservationRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if res.IsApproved {
+		return nil
+	}
+
+	res.IsApproved = true
+
+	if err = r.repo.ReservationRepo.ApproveReservation(ctx, id); err != nil {
 		return err
 	}
 

@@ -64,8 +64,14 @@ func (h *httpDelivery) getJWTData() func(next echo.HandlerFunc) echo.HandlerFunc
 				return c.JSON(http.StatusUnauthorized, "failed to cast user_id")
 			}
 
+			role, ok := claims["role"].(string)
+			if !ok {
+				return c.JSON(http.StatusUnauthorized, "failed to cast role")
+			}
+
 			c.Set("username", username)
 			c.Set("user_id", userId)
+			c.Set("role", role)
 
 			return next(c)
 		}

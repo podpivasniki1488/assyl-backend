@@ -16,3 +16,7 @@ type User struct {
 	ApartmentID  uuid.UUID    `gorm:"type:uuid;OnDelete:SET NULL" json:"apartment_id"`
 	RoleID       protopb.Role `gorm:"type:smallint;not null" json:"role_id"`
 }
+
+func (u *User) TableName() string {
+	return "users"
+}

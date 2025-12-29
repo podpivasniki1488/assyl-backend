@@ -62,8 +62,8 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 //	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
 //	@Router			/auth/login [post]
 func (h *httpDelivery) login(c echo.Context) error {
-	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.login")
-	defer span.End()
+	//ctx, span := h.tracer.StartTime(c.Request().Context(), "httpDelivery.login")
+	//defer span.EndTime()
 
 	var login loginRequest
 	if err := c.Bind(&login); err != nil {
@@ -74,7 +74,7 @@ func (h *httpDelivery) login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	token, err := h.service.Auth.Login(ctx, model.User{
+	token, err := h.service.Auth.Login(c.Request().Context(), model.User{
 		Username: login.Username,
 		Password: login.Password,
 	})

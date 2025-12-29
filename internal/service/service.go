@@ -7,7 +7,6 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/redis/go-redis/v9"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Service struct {
@@ -42,19 +41,19 @@ type Reservation interface {
 	MakeReservation(ctx context.Context, req *model.CinemaReservation) error
 	GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 	GetUnfilteredReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
+	ApproveReservation(ctx context.Context, id uuid.UUID) error
 }
 
 func NewService(
 	repo *repository.Repository,
-	tracer trace.Tracer,
 	redisCli *redis.Client,
 	secretKey string,
 ) *Service {
 	return &Service{
 		UserValidator:  NewUserValidator(repo),
-		UserManagement: NewUserManagement(repo, tracer),
-		Auth:           NewAuthService(repo, secretKey, tracer, redisCli),
-		Apartment:      NewApartmentService(repo, tracer),
-		Reservation:    NewReservation(repo, tracer),
+		UserManagement: NewUserManagement(repo),
+		Auth:           NewAuthService(repo, secretKey, redisCli),
+		Apartment:      NewApartmentService(repo),
+		Reservation:    NewReservation(repo),
 	}
 }

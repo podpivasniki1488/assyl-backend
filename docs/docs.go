@@ -349,9 +349,212 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/reservation": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список бронирований текущего пользователя за период (from-to).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reservation"
+                ],
+                "summary": "Get user reservations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2025-12-29T10:00:00Z",
+                        "description": "Start datetime (RFC3339)",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2025-12-29T12:00:00Z",
+                        "description": "End datetime (RFC3339)",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успех",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-array_model_CinemaReservation"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создаёт бронирование на указанный период для текущего пользователя.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reservation"
+                ],
+                "summary": "Create reservation",
+                "parameters": [
+                    {
+                        "description": "Create reservation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.createReservationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Успех",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
+        },
+        "/reservation/approve": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Одобряет бронирование по reservation_id. Доступно только администратору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reservation"
+                ],
+                "summary": "Approve reservation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "reservation_id",
+                        "name": "reservation_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Одобрено"
+                    },
+                    "400": {
+                        "description": "Невалидный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Только админ может одобрять",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "http.DefaultResponse-array_model_CinemaReservation": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CinemaReservation"
+                    }
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "http.DefaultResponse-error": {
             "type": "object",
             "properties": {
@@ -433,6 +636,25 @@ const docTemplate = `{
                 }
             }
         },
+        "http.createReservationRequest": {
+            "type": "object",
+            "required": [
+                "from",
+                "people_num",
+                "to"
+            ],
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "people_num": {
+                    "type": "integer"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
         "http.loginRequest": {
             "type": "object",
             "required": [
@@ -488,6 +710,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "owner_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CinemaReservation": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_approved": {
+                    "type": "boolean"
+                },
+                "people_num": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

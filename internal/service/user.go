@@ -7,6 +7,7 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/protopb"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -15,8 +16,8 @@ type userManagement struct {
 	tracer trace.Tracer
 }
 
-func NewUserManagement(repo *repository.Repository, tracer trace.Tracer) UserManagement {
-	return &userManagement{repo, tracer}
+func NewUserManagement(repo *repository.Repository) UserManagement {
+	return &userManagement{repo, otel.Tracer("userManagement")}
 }
 
 func (u *userManagement) DeleteUserByEmail(ctx context.Context, email string) error {

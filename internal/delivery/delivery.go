@@ -5,7 +5,6 @@ import (
 
 	"github.com/podpivasniki1488/assyl-backend/internal/delivery/http"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Delivery struct {
@@ -13,8 +12,8 @@ type Delivery struct {
 	// maybe ws
 }
 
-func NewDelivery(logger *slog.Logger, service *service.Service, trace trace.Tracer, jwtSecret string) *Delivery {
+func NewDelivery(logger *slog.Logger, service *service.Service, jwtSecret string) *Delivery {
 	return &Delivery{
-		Http: http.NewHTTPDelivery(logger, service, trace, jwtSecret),
+		Http: http.NewHTTPDelivery(logger, service, jwtSecret),
 	}
 }

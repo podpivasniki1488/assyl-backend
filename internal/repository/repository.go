@@ -6,7 +6,6 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/email"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/reservation"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/user"
-	"go.opentelemetry.io/otel/trace"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -40,11 +39,11 @@ func MustInitDb(dsn string) *gorm.DB {
 	return db
 }
 
-func NewRepository(db *gorm.DB, debug bool, trace trace.Tracer, gmailUsername, gmailPsw string) *Repository {
+func NewRepository(db *gorm.DB, debug bool, gmailUsername, gmailPsw string) *Repository {
 	return &Repository{
-		UserRepo:        user.NewUserRepository(db, debug, trace),
-		EmailRepo:       email.NewEmailRepo(trace, gmailUsername, gmailPsw),
-		ApartmentRepo:   apartment.NewApartmentRepo(db, trace),
-		ReservationRepo: reservation.NewReservationRepository(db, trace),
+		UserRepo:        user.NewUserRepository(db, debug),
+		EmailRepo:       email.NewEmailRepo(gmailUsername, gmailPsw),
+		ApartmentRepo:   apartment.NewApartmentRepo(db),
+		ReservationRepo: reservation.NewReservationRepository(db),
 	}
 }

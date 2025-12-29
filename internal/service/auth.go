@@ -15,6 +15,7 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/protopb"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -32,11 +33,11 @@ type authService struct {
 	redisClient *redis.Client
 }
 
-func NewAuthService(repo *repository.Repository, secretKey string, tracer trace.Tracer, redisCli *redis.Client) Auth {
+func NewAuthService(repo *repository.Repository, secretKey string, redisCli *redis.Client) Auth {
 	return &authService{
 		repo:        repo,
 		secretKey:   secretKey,
-		tracer:      tracer,
+		tracer:      otel.Tracer("authService"),
 		redisClient: redisCli,
 	}
 }
@@ -101,8 +102,10 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 	ctx, span := a.tracer.Start(ctx, "authService.Register")
 	defer span.End()
 
-	if _, err := a.repo.UserRepo.FindByUsername(ctx, user.Username); err == nil {
-		return model.ErrUserAlreadyExists
+	if _, err := a.repo.UserRepo.FindByUsername(ctx, user.Username); err != nil {
+		if !errors.Is(err, model.ErrUserNotFound) {
+			return err
+		}
 	}
 
 	var usernameType int

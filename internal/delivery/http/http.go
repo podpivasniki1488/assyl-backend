@@ -9,6 +9,7 @@ import (
 	_ "github.com/podpivasniki1488/assyl-backend/docs"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -20,12 +21,12 @@ type httpDelivery struct {
 	jwtSecret string
 }
 
-func NewHTTPDelivery(logger *slog.Logger, s *service.Service, tracer trace.Tracer, jwtSecret string) Http {
+func NewHTTPDelivery(logger *slog.Logger, s *service.Service, jwtSecret string) Http {
 	return &httpDelivery{
 		echoApp:   echo.New(),
 		logger:    logger,
 		service:   s,
-		tracer:    tracer,
+		tracer:    otel.Tracer("httpDelivery"),
 		jwtSecret: jwtSecret,
 	}
 }

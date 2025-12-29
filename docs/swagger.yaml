@@ -1,5 +1,16 @@
 basePath: /v1
 definitions:
+  http.DefaultResponse-array_model_CinemaReservation:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.CinemaReservation'
+        type: array
+      error_message:
+        type: string
+      status:
+        type: string
+    type: object
   http.DefaultResponse-error:
     properties:
       data: {}
@@ -53,6 +64,19 @@ definitions:
     - door_num
     - floor
     type: object
+  http.createReservationRequest:
+    properties:
+      from:
+        type: string
+      people_num:
+        type: integer
+      to:
+        type: string
+    required:
+    - from
+    - people_num
+    - to
+    type: object
   http.loginRequest:
     properties:
       password:
@@ -92,6 +116,21 @@ definitions:
       id:
         type: string
       owner_id:
+        type: string
+    type: object
+  model.CinemaReservation:
+    properties:
+      end_time:
+        type: string
+      id:
+        type: string
+      is_approved:
+        type: boolean
+      people_num:
+        type: integer
+      start_time:
+        type: string
+      user_id:
         type: string
     type: object
 host: assyl-c9b2197f0ace.herokuapp.com
@@ -318,6 +357,127 @@ paths:
       summary: Register new user
       tags:
       - auth
+  /reservation:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список бронирований текущего пользователя за период
+        (from-to).
+      parameters:
+      - description: Start datetime (RFC3339)
+        example: "2025-12-29T10:00:00Z"
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End datetime (RFC3339)
+        example: "2025-12-29T12:00:00Z"
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успех
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-array_model_CinemaReservation'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get user reservations
+      tags:
+      - reservation
+    post:
+      consumes:
+      - application/json
+      description: Создаёт бронирование на указанный период для текущего пользователя.
+      parameters:
+      - description: Create reservation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.createReservationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Успех
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Create reservation
+      tags:
+      - reservation
+  /reservation/approve:
+    patch:
+      description: Одобряет бронирование по reservation_id. Доступно только администратору.
+      parameters:
+      - description: reservation_id
+        in: query
+        name: reservation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Одобрено
+        "400":
+          description: Невалидный запрос
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "403":
+          description: Только админ может одобрять
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Approve reservation
+      tags:
+      - reservation
 securityDefinitions:
   JWT:
     in: header

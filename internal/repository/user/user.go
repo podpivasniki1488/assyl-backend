@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 )
@@ -18,11 +19,11 @@ type userRepository struct {
 	debug  bool
 }
 
-func NewUserRepository(db *gorm.DB, debug bool, tracer trace.Tracer) UserRepo {
+func NewUserRepository(db *gorm.DB, debug bool) UserRepo {
 	return &userRepository{
 		db:     db,
 		debug:  debug,
-		tracer: tracer,
+		tracer: otel.Tracer("userRepository"),
 	}
 }
 
@@ -53,6 +54,7 @@ func (u *userRepository) FindByUsername(ctx context.Context, username string) (*
 
 	var user model.User
 	query := u.db.
+		Model(&user).
 		WithContext(ctx).
 		Where("username = ?", username)
 

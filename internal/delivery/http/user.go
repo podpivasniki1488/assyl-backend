@@ -44,8 +44,8 @@ func (h *httpDelivery) reserveCinema(c echo.Context) error {
 
 	if err = h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
 		UserID:    id,
-		From:      req.From,
-		To:        req.To,
+		StartTime: req.From,
+		EndTime:   req.To,
 		PeopleNum: req.PeopleNum,
 	}); err != nil {
 		return h.handleErrResponse(c, err)

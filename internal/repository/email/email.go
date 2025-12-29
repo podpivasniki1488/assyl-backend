@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/mail.v2"
 )
@@ -13,9 +14,9 @@ type email struct {
 	username, password string
 }
 
-func NewEmailRepo(tracer trace.Tracer, username, password string) EmailRepo {
+func NewEmailRepo(username, password string) EmailRepo {
 	return &email{
-		tracer:   tracer,
+		tracer:   otel.Tracer("emailRepo"),
 		username: username,
 		password: password,
 	}
@@ -27,10 +28,10 @@ func (e *email) SendEmail(ctx context.Context, to []string, subject, body string
 
 	msg := mail.NewMessage()
 	msg.SetHeaders(map[string][]string{
-		"From": {
+		"StartTime": {
 			e.username,
 		},
-		"To": to,
+		"EndTime": to,
 		"Subject": {
 			subject,
 		},
