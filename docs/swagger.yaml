@@ -1,5 +1,16 @@
 basePath: /v1
 definitions:
+  http.DefaultResponse-array_model_ChannelMessage:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.ChannelMessage'
+        type: array
+      error_message:
+        type: string
+      status:
+        type: string
+    type: object
   http.DefaultResponse-array_model_CinemaReservation:
     properties:
       data:
@@ -107,6 +118,13 @@ definitions:
     - password
     - username
     type: object
+  http.sendChannelMessage:
+    properties:
+      message:
+        type: string
+    required:
+    - message
+    type: object
   model.Apartment:
     properties:
       door_number:
@@ -116,6 +134,19 @@ definitions:
       id:
         type: string
       owner_id:
+        type: string
+    type: object
+  model.ChannelMessage:
+    properties:
+      author_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      text:
+        type: string
+      updated_at:
         type: string
     type: object
   model.CinemaReservation:
@@ -357,6 +388,87 @@ paths:
       summary: Register new user
       tags:
       - auth
+  /channel:
+    get:
+      consumes:
+      - application/json
+      description: Returns channel messages within the time period.
+      parameters:
+      - description: From datetime (RFC3339)
+        example: "2025-12-01T00:00:00Z"
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To datetime (RFC3339)
+        example: "2025-12-02T00:00:00Z"
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-array_model_ChannelMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get channel messages
+      tags:
+      - Channel
+    post:
+      consumes:
+      - application/json
+      description: Sends a message to the channel. Only ADMIN or GOD can send.
+      parameters:
+      - description: Message payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/http.sendChannelMessage'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Send channel message
+      tags:
+      - Channel
   /reservation:
     get:
       consumes:

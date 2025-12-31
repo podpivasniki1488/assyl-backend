@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
@@ -15,6 +16,7 @@ type Service struct {
 	Auth           Auth
 	Apartment      Apartment
 	Reservation    Reservation
+	Channel        Channel
 }
 
 type Auth interface {
@@ -44,6 +46,11 @@ type Reservation interface {
 	ApproveReservation(ctx context.Context, id uuid.UUID) error
 }
 
+type Channel interface {
+	SendChannelMessage(ctx context.Context, msg model.ChannelMessage) error
+	GetByTimePeriod(ctx context.Context, from, to time.Time) ([]model.ChannelMessage, error)
+}
+
 func NewService(
 	repo *repository.Repository,
 	redisCli *redis.Client,
@@ -55,5 +62,6 @@ func NewService(
 		Auth:           NewAuthService(repo, secretKey, redisCli),
 		Apartment:      NewApartmentService(repo),
 		Reservation:    NewReservation(repo),
+		Channel:        NewChannelService(repo),
 	}
 }

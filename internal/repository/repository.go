@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/apartment"
+	"github.com/podpivasniki1488/assyl-backend/internal/repository/channel"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/email"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/reservation"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/user"
@@ -15,6 +16,7 @@ type Repository struct {
 	EmailRepo       email.EmailRepo
 	ApartmentRepo   apartment.ApartmentRepo
 	ReservationRepo reservation.ReservationRepo
+	ChannelRepo     channel.ChanRepo
 }
 
 func MustInitDb(dsn string) *gorm.DB {
@@ -32,6 +34,7 @@ func MustInitDb(dsn string) *gorm.DB {
 		&model.User{},
 		&model.Apartment{},
 		&model.CinemaReservation{},
+		&model.ChannelMessage{},
 	); err != nil {
 		panic(err)
 	}
@@ -45,5 +48,6 @@ func NewRepository(db *gorm.DB, debug bool, gmailUsername, gmailPsw string) *Rep
 		EmailRepo:       email.NewEmailRepo(gmailUsername, gmailPsw),
 		ApartmentRepo:   apartment.NewApartmentRepo(db),
 		ReservationRepo: reservation.NewReservationRepository(db),
+		ChannelRepo:     channel.NewChanRepository(db),
 	}
 }

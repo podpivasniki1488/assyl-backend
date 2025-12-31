@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/podpivasniki1488/assyl-backend/docs"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -36,6 +37,8 @@ var validate = validator.New()
 func (h *httpDelivery) Start(port string) {
 	h.registerHandler()
 
+	h.echoApp.Use(middleware.CORS())
+
 	h.echoApp.Debug = true
 
 	if err := h.echoApp.Start(port); err != nil {
@@ -51,6 +54,7 @@ func (h *httpDelivery) registerHandler() {
 	h.registerAuthHandlers(v1)
 	h.registerApartmentHandlers(v1)
 	h.registerReservationHandlers(v1)
+	h.registerChannelHandlers(v1)
 }
 
 func (h *httpDelivery) Stop(ctx context.Context) {
