@@ -140,7 +140,6 @@ func (h *httpDelivery) bindApartment(c echo.Context) error {
 	username, ok := c.Get("username").(string)
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse("username not found in context"))
-
 	}
 
 	if err := h.service.UserManagement.BindApartmentToUser(ctx, username, req.ApartmentId); err != nil {

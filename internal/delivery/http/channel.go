@@ -41,7 +41,7 @@ func (h *httpDelivery) getChannelMessages(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.Validate(req); err != nil {
+	if err := validate.Struct(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
