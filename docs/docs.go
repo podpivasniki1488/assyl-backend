@@ -475,6 +475,131 @@ const docTemplate = `{
                 }
             }
         },
+        "/feedback": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns feedbacks list (only ADMIN or GOD)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "feedback"
+                ],
+                "summary": "Get feedbacks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-01-01T00:00:00Z",
+                        "description": "Created from (RFC3339)",
+                        "name": "created_at_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-01-02T00:00:00Z",
+                        "description": "Created to (RFC3339)",
+                        "name": "created_at_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Text filter",
+                        "name": "text",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Feedback type",
+                        "name": "feedback_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates feedback message from authorized user",
+                "tags": [
+                    "feedback"
+                ],
+                "summary": "Create feedback",
+                "parameters": [
+                    {
+                        "description": "Feedback payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.createFeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/reservation": {
             "get": {
                 "security": [
@@ -778,12 +903,26 @@ const docTemplate = `{
                 }
             }
         },
+        "http.createFeedbackRequest": {
+            "type": "object",
+            "required": [
+                "feedback_type",
+                "message"
+            ],
+            "properties": {
+                "feedback_type": {
+                    "$ref": "#/definitions/protopb.FeedbackType"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "http.createReservationRequest": {
             "type": "object",
             "required": [
                 "from",
                 "people_num",
-                "phone_num",
                 "to"
             ],
             "properties": {
@@ -792,9 +931,6 @@ const docTemplate = `{
                 },
                 "people_num": {
                     "type": "integer"
-                },
-                "phone_num": {
-                    "type": "string"
                 },
                 "to": {
                     "type": "string"
@@ -916,6 +1052,22 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "protopb.FeedbackType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "FeedbackType_FEEDBACK_UNSPECIFIED",
+                "FeedbackType_PRETENSION",
+                "FeedbackType_WISH",
+                "FeedbackType_GRATITUDE"
+            ]
         }
     },
     "securityDefinitions": {

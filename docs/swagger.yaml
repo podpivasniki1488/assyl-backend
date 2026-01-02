@@ -75,20 +75,27 @@ definitions:
     - door_num
     - floor
     type: object
+  http.createFeedbackRequest:
+    properties:
+      feedback_type:
+        $ref: '#/definitions/protopb.FeedbackType'
+      message:
+        type: string
+    required:
+    - feedback_type
+    - message
+    type: object
   http.createReservationRequest:
     properties:
       from:
         type: string
       people_num:
         type: integer
-      phone_num:
-        type: string
       to:
         type: string
     required:
     - from
     - people_num
-    - phone_num
     - to
     type: object
   http.loginRequest:
@@ -169,6 +176,19 @@ definitions:
       user_id:
         type: string
     type: object
+  protopb.FeedbackType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - FeedbackType_FEEDBACK_UNSPECIFIED
+    - FeedbackType_PRETENSION
+    - FeedbackType_WISH
+    - FeedbackType_GRATITUDE
 host: assyl-c9b2197f0ace.herokuapp.com
 info:
   contact: {}
@@ -474,6 +494,87 @@ paths:
       summary: Send channel message
       tags:
       - Channel
+  /feedback:
+    get:
+      consumes:
+      - application/json
+      description: Returns feedbacks list (only ADMIN or GOD)
+      parameters:
+      - description: Created from (RFC3339)
+        example: "2026-01-01T00:00:00Z"
+        format: date-time
+        in: query
+        name: created_at_from
+        type: string
+      - description: Created to (RFC3339)
+        example: "2026-01-02T00:00:00Z"
+        format: date-time
+        in: query
+        name: created_at_to
+        type: string
+      - description: Text filter
+        in: query
+        name: text
+        type: string
+      - description: Feedback type
+        in: query
+        name: feedback_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get feedbacks
+      tags:
+      - feedback
+    post:
+      description: Creates feedback message from authorized user
+      parameters:
+      - description: Feedback payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/http.createFeedbackRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Create feedback
+      tags:
+      - feedback
   /reservation:
     get:
       consumes:

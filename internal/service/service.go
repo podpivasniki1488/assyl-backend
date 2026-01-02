@@ -17,6 +17,7 @@ type Service struct {
 	Apartment      Apartment
 	Reservation    Reservation
 	Channel        Channel
+	Feedback       Feedback
 }
 
 type Auth interface {
@@ -51,6 +52,11 @@ type Channel interface {
 	GetByTimePeriod(ctx context.Context, from, to time.Time) ([]model.ChannelMessage, error)
 }
 
+type Feedback interface {
+	CreateFeedback(ctx context.Context, req model.Feedback) error
+	GetFeedbacks(ctx context.Context, req model.GetFeedbackRequest) ([]model.Feedback, error)
+}
+
 func NewService(
 	repo *repository.Repository,
 	redisCli *redis.Client,
@@ -63,5 +69,6 @@ func NewService(
 		Apartment:      NewApartmentService(repo),
 		Reservation:    NewReservation(repo),
 		Channel:        NewChannelService(repo),
+		Feedback:       NewFeedback(repo),
 	}
 }

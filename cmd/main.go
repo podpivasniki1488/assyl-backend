@@ -42,7 +42,6 @@ import (
 //	@in							header
 //	@name						Authorization
 func main() {
-	// get some envs somewhere
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
