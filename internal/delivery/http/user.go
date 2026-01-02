@@ -42,12 +42,17 @@ func (h *httpDelivery) reserveCinema(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
 	}
 
+	role, ok := c.Get("role").(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("role not found in context"))
+	}
+
 	if err = h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
 		UserID:    id,
 		StartTime: req.From,
 		EndTime:   req.To,
 		PeopleNum: req.PeopleNum,
-	}); err != nil {
+	}, role, ""); err != nil {
 		return h.handleErrResponse(c, err)
 	}
 

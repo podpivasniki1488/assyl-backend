@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,8 @@ type reservation struct {
 	tracer trace.Tracer
 	repo   *repository.Repository
 }
+
+var phoneNumRegex = regexp.MustCompile(`^\+\d{11}$`)
 
 func NewReservation(repo *repository.Repository) Reservation {
 	return &reservation{
@@ -80,7 +83,7 @@ func (r *reservation) filterReservation(ctx context.Context, reservations []mode
 	return res, nil
 }
 
-func (r *reservation) MakeReservation(ctx context.Context, req *model.CinemaReservation) error {
+func (r *reservation) MakeReservation(ctx context.Context, req *model.CinemaReservation, role, username string) error {
 	ctx, span := r.tracer.Start(ctx, "reservation.MakeReservation")
 	defer span.End()
 
@@ -109,6 +112,13 @@ func (r *reservation) MakeReservation(ctx context.Context, req *model.CinemaRese
 	}
 
 	req.IsApproved = false
+	if role == protopb.Role_ADMIN.String() || role == protopb.Role_GOD.String() {
+		req.IsApproved = true
+	}
+
+	if phoneNumRegex.MatchString(username) {
+		req.PhoneNum = username
+	}
 
 	if err = r.repo.ReservationRepo.CreateReservation(ctx, req); err != nil {
 		return err

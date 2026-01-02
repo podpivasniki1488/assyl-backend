@@ -19,19 +19,20 @@ func (h *httpDelivery) registerChannelHandlers(v1 *echo.Group) {
 }
 
 // getChannelMessages godoc
-// @Summary      Get channel messages
-// @Description  Returns channel messages within the time period.
-// @Tags         Channel
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        from  query  string  true  "From datetime (RFC3339)" example(2025-12-01T00:00:00Z)
-// @Param        to    query  string  true  "To datetime (RFC3339)"   example(2025-12-02T00:00:00Z)
-// @Success      200   {object}  DefaultResponse[[]model.ChannelMessage]
-// @Failure      400   {object}  DefaultResponse[error]
-// @Failure      401   {object}  DefaultResponse[error]
-// @Failure      500   {object}  DefaultResponse[error]
-// @Router       /channel [get]
+//
+//	@Summary		Get channel messages
+//	@Description	Returns channel messages within the time period.
+//	@Tags			Channel
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			from	query		string	true	"From datetime (RFC3339)"	example(2025-12-01T00:00:00Z)
+//	@Param			to		query		string	true	"To datetime (RFC3339)"		example(2025-12-02T00:00:00Z)
+//	@Success		200		{object}	DefaultResponse[[]model.ChannelMessage]
+//	@Failure		400		{object}	DefaultResponse[error]
+//	@Failure		401		{object}	DefaultResponse[error]
+//	@Failure		500		{object}	DefaultResponse[error]
+//	@Router			/channel [get]
 func (h *httpDelivery) getChannelMessages(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getChannel")
 	defer span.End()
@@ -57,19 +58,20 @@ func (h *httpDelivery) getChannelMessages(c echo.Context) error {
 }
 
 // sendMessage godoc
-// @Summary      Send channel message
-// @Description  Sends a message to the channel. Only ADMIN or GOD can send.
-// @Tags         Channel
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        payload  body  sendChannelMessage  true  "Message payload"
-// @Success      204  {object}  DefaultResponse[string]
-// @Failure      400  {object}  DefaultResponse[error]
-// @Failure      401  {object}  DefaultResponse[error]
-// @Failure      403  {object}  DefaultResponse[error]
-// @Failure      500  {object}  DefaultResponse[error]
-// @Router       /channel [post]
+//
+//	@Summary		Send channel message
+//	@Description	Sends a message to the channel. Only ADMIN or GOD can send.
+//	@Tags			Channel
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			payload	body		sendChannelMessage	true	"Message payload"
+//	@Success		204		{object}	DefaultResponse[string]
+//	@Failure		400		{object}	DefaultResponse[error]
+//	@Failure		401		{object}	DefaultResponse[error]
+//	@Failure		403		{object}	DefaultResponse[error]
+//	@Failure		500		{object}	DefaultResponse[error]
+//	@Router			/channel [post]
 func (h *httpDelivery) sendMessage(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.sendMessage")
 	defer span.End()

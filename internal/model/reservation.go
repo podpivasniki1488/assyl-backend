@@ -13,6 +13,7 @@ type CinemaReservation struct {
 	EndTime    time.Time `gorm:"type:timestamp;not null" json:"end_time"`
 	PeopleNum  uint8     `gorm:"not null" json:"people_num"`
 	IsApproved bool      `gorm:"type:boolean;not null" json:"is_approved"`
+	PhoneNum   string    `gorm:"type:varchar;not null" json:"phone_num"`
 }
 
 func (r *CinemaReservation) TableName() string {

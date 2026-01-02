@@ -150,12 +150,22 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse("invalid user id"))
 	}
 
+	username, ok := c.Get("username").(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("failed to get username from context"))
+	}
+
+	role, ok := c.Get("role").(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("failed to get role from context"))
+	}
+
 	if err = h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
 		StartTime: req.From,
 		EndTime:   req.To,
 		PeopleNum: req.PeopleNum,
 		UserID:    parsed,
-	}); err != nil {
+	}, role, username); err != nil {
 		return h.handleErrResponse(c, err)
 	}
 

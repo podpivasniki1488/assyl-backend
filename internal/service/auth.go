@@ -26,6 +26,11 @@ const (
 	UsernameTypePhone
 )
 
+var (
+	emailRegexp = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`)
+	phoneRegexp = regexp.MustCompile(`^1[34578][0-9]{9}$`)
+)
+
 type authService struct {
 	repo        *repository.Repository
 	secretKey   string
@@ -132,9 +137,9 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 			return err
 		}
 	case UsernameTypeNone:
-		// pass
+		// TODO: auto approved
 	case UsernameTypePhone:
-		return errors.New("not implemented")
+		// TODO: send sms via whatsapp
 	default:
 		return errors.New("unknown username type")
 	}
@@ -187,13 +192,15 @@ func (a *authService) isPhone(str string) bool {
 }
 
 func (a *authService) generateJwtToken(username string, role protopb.Role, userId uuid.UUID) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"username": username,
-			"user_id":  userId.String(),
-			"role":     role.String(),
-			"issuer":   "jeffry's backend",
-		})
+	claims := jwt.MapClaims{
+		"username": username,
+		"user_id":  userId.String(),
+		"role":     role.String(),
+		"issuer":   "jeffry's backend",
+		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString([]byte(a.secretKey))
 	if err != nil {

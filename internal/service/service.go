@@ -40,7 +40,7 @@ type Apartment interface {
 }
 
 type Reservation interface {
-	MakeReservation(ctx context.Context, req *model.CinemaReservation) error
+	MakeReservation(ctx context.Context, req *model.CinemaReservation, role, username string) error
 	GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 	GetUnfilteredReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 	ApproveReservation(ctx context.Context, id uuid.UUID) error

@@ -783,6 +783,7 @@ const docTemplate = `{
             "required": [
                 "from",
                 "people_num",
+                "phone_num",
                 "to"
             ],
             "properties": {
@@ -791,6 +792,9 @@ const docTemplate = `{
                 },
                 "people_num": {
                     "type": "integer"
+                },
+                "phone_num": {
+                    "type": "string"
                 },
                 "to": {
                     "type": "string"
@@ -901,6 +905,9 @@ const docTemplate = `{
                 },
                 "people_num": {
                     "type": "integer"
+                },
+                "phone_num": {
+                    "type": "string"
                 },
                 "start_time": {
                     "type": "string"
