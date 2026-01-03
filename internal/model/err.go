@@ -46,4 +46,5 @@ var (
 	ErrCinemaBusy            = AppError{HttpStatusCode: http.StatusConflict, Message: "cinema busy"}
 	ErrTooManyPeople         = AppError{HttpStatusCode: http.StatusBadRequest, Message: "too many people"}
 	ErrReservationImpossible = AppError{HttpStatusCode: http.StatusBadRequest, Message: "reservation impossible"}
+	ErrAdminsCannotBeDeleted = AppError{HttpStatusCode: http.StatusForbidden, Message: "admins can not be deleted"}
 )

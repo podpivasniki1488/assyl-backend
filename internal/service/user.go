@@ -20,8 +20,17 @@ func NewUserManagement(repo *repository.Repository) UserManagement {
 	return &userManagement{repo, otel.Tracer("userManagement")}
 }
 
-func (u *userManagement) DeleteUserByEmail(ctx context.Context, email string) error {
-	if err := u.repo.UserRepo.DeleteByUsername(ctx, email); err != nil {
+func (u *userManagement) DeleteUserByUsername(ctx context.Context, username string) error {
+	userToDelete, err := u.repo.UserRepo.FindByUsername(ctx, username)
+	if err != nil {
+		return err
+	}
+
+	if userToDelete.RoleID == protopb.Role_GOD || userToDelete.RoleID == protopb.Role_ADMIN {
+		return model.ErrAdminsCannotBeDeleted
+	}
+
+	if err = u.repo.UserRepo.DeleteByUsername(ctx, username); err != nil {
 		return err
 	}
 

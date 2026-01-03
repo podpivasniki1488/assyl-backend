@@ -1,12 +1,11 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/podpivasniki1488/assyl-backend/internal/model"
+	"github.com/podpivasniki1488/assyl-backend/protopb"
 )
 
 // TODO: here we need to add user handlers and first handler must be giving users cinema reservations
@@ -14,32 +13,18 @@ import (
 func (h *httpDelivery) registerUserHandlers(v1 *echo.Group) {
 	user := v1.Group("/user")
 
-	reservation := user.Group("/reservation")
-	reservation.POST("/cinema", h.reserveCinema, h.getJWTData())
+	user.Use(h.registerJWTMiddleware())
+	user.DELETE("", h.deleteUser, h.getJWTData())
 
 }
 
-func (h *httpDelivery) reserveCinema(c echo.Context) error {
-	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.reserveCinema")
+func (h *httpDelivery) deleteUser(c echo.Context) error {
+	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.deleteUser")
 	defer span.End()
 
-	var req reserveCinemaRequest
+	var req deleteUserRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
-	}
-
-	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
-	}
-
-	userId, ok := c.Get("user_id").(string)
-	if !ok {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse("user_id not found in context"))
-	}
-
-	id, err := uuid.Parse(userId)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
 	}
 
 	role, ok := c.Get("role").(string)
@@ -47,23 +32,28 @@ func (h *httpDelivery) reserveCinema(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse("role not found in context"))
 	}
 
-	if err = h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
-		UserID:    id,
-		StartTime: req.From,
-		EndTime:   req.To,
-		PeopleNum: req.PeopleNum,
-	}, role, ""); err != nil {
+	fmt.Println(protopb.Role_ADMIN.String())
+
+	if role != protopb.Role_ADMIN.String() && role != protopb.Role_GOD.String() {
+		return c.JSON(http.StatusForbidden, ErrorResponse("role not allowed"))
+	}
+
+	username, ok := c.Get("username").(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("username not found in context"))
+	}
+
+	if username == req.Username {
+		return c.JSON(http.StatusForbidden, ErrorResponse("cannot delete yourself bro)"))
+	}
+
+	if err := h.service.UserManagement.DeleteUserByUsername(ctx, req.Username); err != nil {
 		return h.handleErrResponse(c, err)
 	}
 
-	return c.JSON(http.StatusCreated, DefaultResponse[string]{
-		Status: "success",
-		Data:   "",
-	})
+	return nil
 }
 
-type reserveCinemaRequest struct {
-	From      time.Time `json:"from" validate:"required"`
-	To        time.Time `json:"to" validate:"required"`
-	PeopleNum uint8     `json:"people_num" validate:"required"`
+type deleteUserRequest struct {
+	Username string `json:"username" validate:"required"`
 }

@@ -32,7 +32,7 @@ type UserValidator interface {
 }
 
 type UserManagement interface {
-	DeleteUserByEmail(ctx context.Context, email string) error
+	DeleteUserByUsername(ctx context.Context, username string) error
 	BindApartmentToUser(ctx context.Context, username string, apartmentId uuid.UUID) error
 }
 
