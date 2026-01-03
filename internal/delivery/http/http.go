@@ -56,6 +56,7 @@ func (h *httpDelivery) registerHandler() {
 	h.registerReservationHandlers(v1)
 	h.registerChannelHandlers(v1)
 	h.registerFeedbackHandlers(v1)
+	h.registerOrderHandlers(v1)
 }
 
 func (h *httpDelivery) Stop(ctx context.Context) {

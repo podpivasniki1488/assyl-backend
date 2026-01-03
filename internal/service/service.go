@@ -18,6 +18,7 @@ type Service struct {
 	Reservation    Reservation
 	Channel        Channel
 	Feedback       Feedback
+	Order          Order
 }
 
 type Auth interface {
@@ -57,6 +58,11 @@ type Feedback interface {
 	GetFeedbacks(ctx context.Context, req model.GetFeedbackRequest) ([]model.Feedback, error)
 }
 
+type Order interface {
+	OrderService(ctx context.Context, req *model.Order) error
+	GetUserOrders(ctx context.Context, req *model.GetOrderRequest, role string) ([]model.Order, error)
+}
+
 func NewService(
 	repo *repository.Repository,
 	redisCli *redis.Client,
@@ -70,5 +76,6 @@ func NewService(
 		Reservation:    NewReservation(repo),
 		Channel:        NewChannelService(repo),
 		Feedback:       NewFeedback(repo),
+		Order:          NewOrderService(repo),
 	}
 }

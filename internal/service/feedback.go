@@ -5,7 +5,6 @@ import (
 
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
-	"github.com/podpivasniki1488/assyl-backend/protopb"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -40,10 +39,4 @@ func (f *feedback) GetFeedbacks(ctx context.Context, req model.GetFeedbackReques
 	}
 
 	return resp, nil
-}
-
-func (f *feedback) existType(enum protopb.FeedbackType) bool {
-	_, ok := protopb.FeedbackType_value[enum.String()]
-
-	return ok
 }

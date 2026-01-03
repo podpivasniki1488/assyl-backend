@@ -15,7 +15,6 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/delivery"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
-	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
@@ -64,15 +63,15 @@ func main() {
 		_ = shutdownOTel(ctx)
 	}()
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.RedisDSN,
-		Username: cfg.RedisUsername,
-		Password: cfg.RedisPassword,
-		DB:       0,
-	})
-	if err = rdb.Ping(ctx).Err(); err != nil {
-		panic(err)
-	}
+	//rdb := redis.NewClient(&redis.Options{
+	//	Addr:     cfg.RedisDSN,
+	//	Username: cfg.RedisUsername,
+	//	Password: cfg.RedisPassword,
+	//	DB:       0,
+	//})
+	//if err = rdb.Ping(ctx).Err(); err != nil {
+	//	panic(err)
+	//}
 
 	txtHandler := slog.NewTextHandler(os.Stdin, nil)
 	logger := slog.New(txtHandler)
@@ -83,7 +82,7 @@ func main() {
 
 	repo := repository.NewRepository(db, debug, cfg.GmailUsername, cfg.GmailPassword)
 
-	srv := service.NewService(repo, rdb, cfg.JwtSecretKey)
+	srv := service.NewService(repo, nil, cfg.JwtSecretKey)
 
 	d := delivery.NewDelivery(logger, srv, cfg.JwtSecretKey)
 

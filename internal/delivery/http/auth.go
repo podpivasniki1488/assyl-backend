@@ -15,6 +15,8 @@ func (h *httpDelivery) registerAuthHandlers(v1 *echo.Group) {
 	auth.POST("/login", h.login)
 }
 
+// postgresql://postgres:postgres@localhost:5432/app
+
 // confirm godoc
 //
 //	@Summary		Confirm registration

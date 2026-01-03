@@ -6,6 +6,7 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/channel"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/email"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/feedback"
+	"github.com/podpivasniki1488/assyl-backend/internal/repository/order"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/reservation"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/user"
 	"gorm.io/driver/postgres"
@@ -19,6 +20,7 @@ type Repository struct {
 	ReservationRepo reservation.ReservationRepo
 	ChannelRepo     channel.ChanRepo
 	FeedbackRepo    feedback.FeedbackRepo
+	OrderRepo       order.OrderRepo
 }
 
 func MustInitDb(dsn string) *gorm.DB {
@@ -38,6 +40,7 @@ func MustInitDb(dsn string) *gorm.DB {
 		&model.CinemaReservation{},
 		&model.ChannelMessage{},
 		&model.Feedback{},
+		&model.Order{},
 	); err != nil {
 		panic(err)
 	}
@@ -53,5 +56,6 @@ func NewRepository(db *gorm.DB, debug bool, gmailUsername, gmailPsw string) *Rep
 		ReservationRepo: reservation.NewReservationRepository(db),
 		ChannelRepo:     channel.NewChanRepository(db),
 		FeedbackRepo:    feedback.NewFeedbackRepository(db),
+		OrderRepo:       order.NewOrderRepository(db),
 	}
 }
