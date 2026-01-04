@@ -17,6 +17,21 @@ func (h *httpDelivery) registerOrderHandlers(v1 *echo.Group) {
 	order.POST("", h.createOrder, h.getJWTData())
 }
 
+// createOrder godoc
+//
+//	@Summary		Create order
+//	@Description	Создаёт заявку/заказ от имени авторизованного пользователя. OrderType должен существовать в enum protopb.OrderType.
+//	@Tags			order
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body		createOrderRequest		true	"Create order request"
+//	@Success		204		{object}	DefaultResponse[string]	"Успех (No Content)"
+//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
+//	@Failure		401		{object}	DefaultResponse[error]	"Не авторизован / некорректный user_id в токене"
+//	@Failure		422		{object}	DefaultResponse[error]	"Невалидный order_type"
+//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
+//	@Router			/order [post]
 func (h *httpDelivery) createOrder(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.createOrder")
 	defer span.End()
@@ -59,6 +74,23 @@ type createOrderRequest struct {
 	Text      string `json:"text"`
 }
 
+// getOrders godoc
+//
+//	@Summary		Get orders
+//	@Description	Возвращает список заказов по фильтрам. Требуется JWT. Роль берётся из токена/контекста.
+//	@Tags			order
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id			query		string							false	"Order ID (uuid)"
+//	@Param			user_id		query		string							false	"User ID (uuid)"
+//	@Param			order_type	query		string							false	"Order type (string, must match protopb.OrderType enum name)"
+//	@Param			text		query		string							false	"Search by text"
+//	@Success		200			{object}	DefaultResponse[[]model.Order]	"Успех"
+//	@Failure		400			{object}	DefaultResponse[error]			"Невалидный запрос"
+//	@Failure		401			{object}	DefaultResponse[error]			"Не авторизован / некорректный user_id в токене"
+//	@Failure		500			{object}	DefaultResponse[error]			"Внутренняя ошибка сервера"
+//	@Router			/order [get]
 func (h *httpDelivery) getOrders(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getOrders")
 	defer span.End()

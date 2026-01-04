@@ -600,6 +600,139 @@ const docTemplate = `{
                 }
             }
         },
+        "/order": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список заказов по фильтрам. Требуется JWT. Роль берётся из токена/контекста.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Get orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID (uuid)",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID (uuid)",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order type (string, must match protopb.OrderType enum name)",
+                        "name": "order_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by text",
+                        "name": "text",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успех",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-array_model_Order"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован / некорректный user_id в токене",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создаёт заявку/заказ от имени авторизованного пользователя. OrderType должен существовать в enum protopb.OrderType.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Create order",
+                "parameters": [
+                    {
+                        "description": "Create order request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.createOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Успех (No Content)",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Невалидный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован / некорректный user_id в токене",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "422": {
+                        "description": "Невалидный order_type",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/reservation": {
             "get": {
                 "security": [
@@ -785,6 +918,66 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет пользователя по username. Доступно только ролям ADMIN и GOD. Нельзя удалить самого себя.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Delete user (admin/god only)",
+                "parameters": [
+                    {
+                        "description": "Delete user request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.deleteUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Пользователь удалён"
+                    },
+                    "400": {
+                        "description": "Невалидный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован / некорректный токен",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав / попытка удалить себя",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -812,6 +1005,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.CinemaReservation"
+                    }
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.DefaultResponse-array_model_Order": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Order"
                     }
                 },
                 "error_message": {
@@ -918,6 +1128,17 @@ const docTemplate = `{
                 }
             }
         },
+        "http.createOrderRequest": {
+            "type": "object",
+            "properties": {
+                "order_type": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
         "http.createReservationRequest": {
             "type": "object",
             "required": [
@@ -933,6 +1154,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.deleteUserRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
                     "type": "string"
                 }
             }
@@ -1053,6 +1285,23 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Order": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "order_type": {
+                    "$ref": "#/definitions/protopb.OrderType"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "protopb.FeedbackType": {
             "type": "integer",
             "format": "int32",
@@ -1067,6 +1316,28 @@ const docTemplate = `{
                 "FeedbackType_PRETENSION",
                 "FeedbackType_WISH",
                 "FeedbackType_GRATITUDE"
+            ]
+        },
+        "protopb.OrderType": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "OrderType_ORDER_TYPE_UNSPECIFIED",
+                "OrderType_CLEANING",
+                "OrderType_INTERNET",
+                "OrderType_GARBAGE_REMOVAL",
+                "OrderType_PLUMBER",
+                "OrderType_ELECTRICITY",
+                "OrderType_OTHER"
             ]
         }
     },

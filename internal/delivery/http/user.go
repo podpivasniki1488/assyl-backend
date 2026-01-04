@@ -18,6 +18,21 @@ func (h *httpDelivery) registerUserHandlers(v1 *echo.Group) {
 
 }
 
+// deleteUser godoc
+//
+//	@Summary		Delete user (admin/god only)
+//	@Description	Удаляет пользователя по username. Доступно только ролям ADMIN и GOD. Нельзя удалить самого себя.
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	deleteUserRequest	true	"Delete user request"
+//	@Success		204		"Пользователь удалён"
+//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
+//	@Failure		401		{object}	DefaultResponse[error]	"Не авторизован / некорректный токен"
+//	@Failure		403		{object}	DefaultResponse[error]	"Недостаточно прав / попытка удалить себя"
+//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
+//	@Router			/user [delete]
 func (h *httpDelivery) deleteUser(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.deleteUser")
 	defer span.End()
