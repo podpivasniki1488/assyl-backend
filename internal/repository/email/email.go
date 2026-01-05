@@ -28,10 +28,10 @@ func (e *email) SendEmail(ctx context.Context, to []string, subject, body string
 
 	msg := mail.NewMessage()
 	msg.SetHeaders(map[string][]string{
-		"StartTime": {
+		"From": {
 			e.username,
 		},
-		"EndTime": to,
+		"To": to,
 		"Subject": {
 			subject,
 		},

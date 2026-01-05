@@ -83,7 +83,7 @@ func main() {
 
 	repo := repository.NewRepository(db, debug, cfg.GmailUsername, cfg.GmailPassword)
 
-	srv := service.NewService(repo, nil, cfg.JwtSecretKey)
+	srv := service.NewService(repo, rdb, cfg.JwtSecretKey)
 
 	d := delivery.NewDelivery(logger, srv, cfg.JwtSecretKey)
 
