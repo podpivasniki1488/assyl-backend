@@ -123,7 +123,19 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 		usernameType = UsernameTypeNone
 	}
 
-	otp := rand.Intn(9000) + 1000
+	var (
+		otp        = rand.Intn(9000) + 1000
+		isApproved = false
+		u          = model.User{
+			Username: user.Username,
+			//Password:     string(hashedPsw),
+			FirstName:    user.FirstName,
+			LastName:     user.LastName,
+			UsernameType: usernameType,
+			//IsApproved:   false,
+			RoleID: protopb.Role_GUEST,
+		}
+	)
 
 	// send message to
 	switch usernameType {
@@ -137,7 +149,7 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 			return err
 		}
 	case UsernameTypeNone:
-		// TODO: auto approved
+		isApproved = true
 	case UsernameTypePhone:
 		// TODO: send sms via whatsapp
 	default:
@@ -158,15 +170,8 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 		return err
 	}
 
-	u := model.User{
-		Username:     user.Username,
-		Password:     string(hashedPsw),
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		UsernameType: usernameType,
-		IsApproved:   false,
-		RoleID:       protopb.Role_GUEST,
-	}
+	u.IsApproved = isApproved
+	u.Password = string(hashedPsw)
 
 	if err = a.repo.UserRepo.CreateUser(ctx, &u); err != nil {
 		return err
