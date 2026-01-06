@@ -286,7 +286,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Успех",
                         "schema": {
-                            "$ref": "#/definitions/http.DefaultResponse-string"
+                            "$ref": "#/definitions/http.DefaultResponse-http_loginResponse"
                         }
                     },
                     "400": {
@@ -1044,6 +1044,20 @@ const docTemplate = `{
                 }
             }
         },
+        "http.DefaultResponse-http_loginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/http.loginResponse"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "http.DefaultResponse-model_Apartment": {
             "type": "object",
             "properties": {
@@ -1184,6 +1198,17 @@ const docTemplate = `{
                 }
             }
         },
+        "http.loginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/model.User"
+                }
+            }
+        },
         "http.registerRequest": {
             "type": "object",
             "required": [
@@ -1302,6 +1327,40 @@ const docTemplate = `{
                 }
             }
         },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "apartment_id": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_approved": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "$ref": "#/definitions/protopb.Role"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "username_type": {
+                    "type": "integer",
+                    "default": 1
+                }
+            }
+        },
         "protopb.FeedbackType": {
             "type": "integer",
             "format": "int32",
@@ -1338,6 +1397,24 @@ const docTemplate = `{
                 "OrderType_PLUMBER",
                 "OrderType_ELECTRICITY",
                 "OrderType_OTHER"
+            ]
+        },
+        "protopb.Role": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "Role_STATUS_UNSPECIFIED",
+                "Role_GUEST",
+                "Role_INHABITANT",
+                "Role_ADMIN",
+                "Role_GOD"
             ]
         }
     },

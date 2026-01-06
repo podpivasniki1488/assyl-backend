@@ -58,10 +58,10 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		loginRequest			true	"Login request"
+//	@Param			request	body		loginRequest					true	"Login request"
 //	@Success		200		{object}	DefaultResponse[loginResponse]	"Успех"
-//	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
-//	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
+//	@Failure		400		{object}	DefaultResponse[error]			"Невалидный запрос"
+//	@Failure		500		{object}	DefaultResponse[error]			"Внутренняя ошибка сервера"
 //	@Router			/auth/login [post]
 func (h *httpDelivery) login(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.login")

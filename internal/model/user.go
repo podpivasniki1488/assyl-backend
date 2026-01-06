@@ -10,7 +10,7 @@ type User struct {
 	FirstName    string       `gorm:"type:varchar;not null" json:"first_name"`
 	LastName     string       `gorm:"type:varchar;not null" json:"last_name"`
 	Username     string       `gorm:"type:varchar;not null;uniqueIndex:idx_user_username" json:"username"`
-	UsernameType int          `gorm:"type:int;not null" default:"user" json:"username_type"`
+	UsernameType int          `gorm:"type:int;not null" default:"1" json:"username_type"`
 	Password     string       `gorm:"type:varchar;not null" json:"password"`
 	IsApproved   bool         `gorm:"type:boolean;not null" default:"false" json:"is_approved"`
 	ApartmentID  uuid.UUID    `gorm:"type:uuid;OnDelete:SET NULL" json:"apartment_id"`
