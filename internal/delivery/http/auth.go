@@ -59,13 +59,13 @@ func (h *httpDelivery) confirm(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		loginRequest			true	"Login request"
-//	@Success		200		{object}	DefaultResponse[string]	"Успех"
+//	@Success		200		{object}	DefaultResponse[loginResponse]	"Успех"
 //	@Failure		400		{object}	DefaultResponse[error]	"Невалидный запрос"
 //	@Failure		500		{object}	DefaultResponse[error]	"Внутренняя ошибка сервера"
 //	@Router			/auth/login [post]
 func (h *httpDelivery) login(c echo.Context) error {
-	//ctx, span := h.tracer.StartTime(c.Request().Context(), "httpDelivery.login")
-	//defer span.EndTime()
+	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.login")
+	defer span.End()
 
 	var login loginRequest
 	if err := c.Bind(&login); err != nil {
@@ -76,7 +76,7 @@ func (h *httpDelivery) login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	token, err := h.service.Auth.Login(c.Request().Context(), model.User{
+	token, user, err := h.service.Auth.Login(ctx, model.User{
 		Username: login.Username,
 		Password: login.Password,
 	})
@@ -84,9 +84,17 @@ func (h *httpDelivery) login(c echo.Context) error {
 		return h.handleErrResponse(c, err)
 	}
 
-	return c.JSON(http.StatusOK, DefaultResponse[string]{
+	data := loginResponse{
+		Token: token,
+	}
+
+	if user != nil {
+		data.User = *user
+	}
+
+	return c.JSON(http.StatusOK, DefaultResponse[loginResponse]{
 		Status: "ok",
-		Data:   token,
+		Data:   data,
 	})
 }
 
@@ -149,4 +157,9 @@ type registerRequest struct {
 type loginRequest struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
+}
+
+type loginResponse struct {
+	Token string     `json:"token"`
+	User  model.User `json:"user"`
 }

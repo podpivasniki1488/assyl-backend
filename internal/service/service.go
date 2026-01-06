@@ -22,7 +22,7 @@ type Service struct {
 }
 
 type Auth interface {
-	Login(ctx context.Context, user model.User) (token string, err error)
+	Login(ctx context.Context, user model.User) (token string, u *model.User, err error)
 	Register(ctx context.Context, user model.User) error
 	Confirm(ctx context.Context, username, otpCode string) error
 }

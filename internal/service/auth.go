@@ -26,10 +26,7 @@ const (
 	UsernameTypePhone
 )
 
-var (
-	emailRegexp = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`)
-	phoneRegexp = regexp.MustCompile(`^1[34578][0-9]{9}$`)
-)
+var phoneRegexp = regexp.MustCompile(`^\+[1-9]\d{7,14}$`)
 
 type authService struct {
 	repo        *repository.Repository
@@ -78,29 +75,31 @@ func (a *authService) Confirm(ctx context.Context, username, otpCode string) err
 	return nil
 }
 
-func (a *authService) Login(ctx context.Context, user model.User) (token string, err error) {
+func (a *authService) Login(ctx context.Context, user model.User) (token string, u *model.User, err error) {
 	ctx, span := a.tracer.Start(ctx, "authService.Login")
 	defer span.End()
 
-	u, err := a.repo.UserRepo.FindByUsername(ctx, user.Username)
+	u, err = a.repo.UserRepo.FindByUsername(ctx, user.Username)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	if !u.IsApproved {
-		return "", model.ErrUserNotApproved
+		return "", nil, model.ErrUserNotApproved
 	}
 
 	if ok := a.comparePasswords(u.Password, user.Password); !ok {
-		return "", model.ErrPasswordMatch
+		return "", nil, model.ErrPasswordMatch
 	}
 
 	token, err = a.generateJwtToken(u.Username, u.RoleID, u.ID)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return token, nil
+	u.Password = ""
+
+	return
 }
 
 func (a *authService) Register(ctx context.Context, user model.User) error {
@@ -186,14 +185,7 @@ func (a *authService) isEmail(str string) bool {
 }
 
 func (a *authService) isPhone(str string) bool {
-	re := regexp.MustCompile(`(?:^|[^0-9])(1[34578][0-9]{9})(?:$|[^0-9])`)
-	submatch := re.FindStringSubmatch(str)
-	if len(submatch) < 2 {
-		return false
-	}
-	//match := submatch[1]
-
-	return true
+	return phoneRegexp.MatchString(str)
 }
 
 func (a *authService) generateJwtToken(username string, role protopb.Role, userId uuid.UUID) (string, error) {
