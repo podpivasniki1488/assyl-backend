@@ -30,3 +30,8 @@ type GetReservationRequest struct {
 	UserID        uuid.UUID
 	IsApproved    *bool
 }
+
+type TimeRange struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}

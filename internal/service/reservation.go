@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"regexp"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -147,4 +148,107 @@ func (r *reservation) ApproveReservation(ctx context.Context, id uuid.UUID) erro
 	}
 
 	return nil
+}
+
+func (r *reservation) GetFreeSlots(ctx context.Context, from, to time.Time) ([]model.TimeRange, error) {
+	ctx, span := r.tracer.Start(ctx, "reservation.GetFreeSlots")
+	defer span.End()
+
+	if !from.Before(to) {
+		return []model.TimeRange{}, nil
+	}
+
+	// TODO: нужно ли нам сортировать по approved?
+	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
+		StartTimeFrom: from,
+		EndTimeTo:     to,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(reservations) == 0 {
+		return []model.TimeRange{{Start: from, End: to}}, nil
+	}
+
+	busy := make([]model.TimeRange, 0, len(reservations))
+	for _, res := range reservations {
+		s := res.StartTime
+		e := res.EndTime
+
+		// на всякий случай защита от мусора
+		if !s.Before(e) {
+			continue
+		}
+
+		// clamp to [from,to]
+		if s.Before(from) {
+			s = from
+		}
+		if e.After(to) {
+			e = to
+		}
+
+		// после clamp может стать пустым
+		if !s.Before(e) {
+			continue
+		}
+
+		busy = append(busy, model.TimeRange{Start: s, End: e})
+	}
+
+	if len(busy) == 0 {
+		return []model.TimeRange{{Start: from, End: to}}, nil
+	}
+
+	sort.Slice(busy, func(i, j int) bool {
+		if busy[i].Start.Equal(busy[j].Start) {
+			return busy[i].End.Before(busy[j].End)
+		}
+		return busy[i].Start.Before(busy[j].Start)
+	})
+
+	merged := make([]model.TimeRange, 0, len(busy))
+	cur := busy[0]
+	for i := 1; i < len(busy); i++ {
+		n := busy[i]
+
+		// если следующий начинается ДО или РОВНО в конец текущего — сливаем
+		// (ровно = "соприкосновение" без свободной щели)
+		if !n.Start.After(cur.End) {
+			if n.End.After(cur.End) {
+				cur.End = n.End
+			}
+			continue
+		}
+
+		merged = append(merged, cur)
+		cur = n
+	}
+	merged = append(merged, cur)
+
+	// 4) Вычисляем комплемент: free = [from,to] \ merged
+	free := make([]model.TimeRange, 0, len(merged)+1)
+
+	// до первой busy
+	if from.Before(merged[0].Start) {
+		free = append(free, model.TimeRange{Start: from, End: merged[0].Start})
+	}
+
+	// между busy
+	for i := 0; i < len(merged)-1; i++ {
+		a := merged[i]
+		b := merged[i+1]
+		if a.End.Before(b.Start) {
+			free = append(free, model.TimeRange{Start: a.End, End: b.Start})
+		}
+	}
+
+	// после последней busy
+	last := merged[len(merged)-1]
+	if last.End.Before(to) {
+		free = append(free, model.TimeRange{Start: last.End, End: to})
+	}
+
+	return free, nil
 }

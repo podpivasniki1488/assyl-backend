@@ -33,6 +33,17 @@ definitions:
       status:
         type: string
     type: object
+  http.DefaultResponse-array_model_TimeRange:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.TimeRange'
+        type: array
+      error_message:
+        type: string
+      status:
+        type: string
+    type: object
   http.DefaultResponse-error:
     properties:
       data: {}
@@ -226,6 +237,13 @@ definitions:
       text:
         type: string
       user_id:
+        type: string
+    type: object
+  model.TimeRange:
+    properties:
+      end:
+        type: string
+      start:
         type: string
     type: object
   model.User:
@@ -890,6 +908,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Approve reservation
+      tags:
+      - reservation
+  /reservation/free-slots:
+    get:
+      description: |-
+        Возвращает список свободных временных интервалов в заданном диапазоне.
+        Свободный слот — это интервал времени, не пересекающийся ни с одной резервацией.
+      parameters:
+      - description: Start datetime (RFC3339)
+        example: "2026-01-07T00:00:00Z"
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End datetime (RFC3339)
+        example: "2026-01-07T23:59:00Z"
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of free time intervals
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-array_model_TimeRange'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/http.DefaultResponse-error'
+      security:
+      - BearerAuth: []
+      summary: Get free time slots
       tags:
       - reservation
   /user:

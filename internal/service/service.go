@@ -46,6 +46,7 @@ type Reservation interface {
 	GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 	GetUnfilteredReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 	ApproveReservation(ctx context.Context, id uuid.UUID) error
+	GetFreeSlots(ctx context.Context, from, to time.Time) ([]model.TimeRange, error)
 }
 
 type Channel interface {

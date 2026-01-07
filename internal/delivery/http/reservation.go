@@ -17,6 +17,7 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 	reservation.POST("", h.createReservation, h.getJWTData())
 	reservation.GET("", h.getReservation, h.getJWTData())
 	reservation.PATCH("/approve", h.approveReservation, h.getJWTData())
+	reservation.GET("/free-slots", nil)
 }
 
 // getReservation godoc
@@ -172,6 +173,45 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 	return c.JSON(http.StatusCreated, DefaultResponse[string]{
 		Status: "success",
 		Data:   "",
+	})
+}
+
+// getFreeSlots godoc
+//
+//	@Summary		Get free time slots
+//	@Description	Возвращает список свободных временных интервалов в заданном диапазоне.
+//	@Description	Свободный слот — это интервал времени, не пересекающийся ни с одной резервацией.
+//	@Tags			reservation
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			from	query		string								true	"Start datetime (RFC3339)"	example(2026-01-07T00:00:00Z)
+//	@Param			to		query		string								true	"End datetime (RFC3339)"	example(2026-01-07T23:59:00Z)
+//	@Success		200		{object}	DefaultResponse[[]model.TimeRange]	"List of free time intervals"
+//	@Failure		400		{object}	DefaultResponse[error]				"Invalid request"
+//	@Failure		401		{object}	DefaultResponse[error]				"Unauthorized"
+//	@Failure		500		{object}	DefaultResponse[error]				"Internal server error"
+//	@Router			/reservation/free-slots [get]
+func (h *httpDelivery) getFreeSlots(c echo.Context) error {
+	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getFreeSlots")
+	defer span.End()
+
+	var req getReservationRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
+	}
+
+	if req.From.IsZero() || req.To.IsZero() {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("from and to are required"))
+	}
+
+	res, err := h.service.Reservation.GetFreeSlots(ctx, req.From, req.To)
+	if err != nil {
+		return h.handleErrResponse(c, err)
+	}
+
+	return c.JSON(http.StatusOK, DefaultResponse[[]model.TimeRange]{
+		Data:   res,
+		Status: "success",
 	})
 }
 

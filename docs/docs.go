@@ -919,6 +919,67 @@ const docTemplate = `{
                 }
             }
         },
+        "/reservation/free-slots": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список свободных временных интервалов в заданном диапазоне.\nСвободный слот — это интервал времени, не пересекающийся ни с одной резервацией.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reservation"
+                ],
+                "summary": "Get free time slots",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2026-01-07T00:00:00Z",
+                        "description": "Start datetime (RFC3339)",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2026-01-07T23:59:00Z",
+                        "description": "End datetime (RFC3339)",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of free time intervals",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-array_model_TimeRange"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/http.DefaultResponse-error"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "delete": {
                 "security": [
@@ -1022,6 +1083,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Order"
+                    }
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.DefaultResponse-array_model_TimeRange": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TimeRange"
                     }
                 },
                 "error_message": {
@@ -1323,6 +1401,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.TimeRange": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "string"
+                },
+                "start": {
                     "type": "string"
                 }
             }
