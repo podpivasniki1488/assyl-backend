@@ -17,7 +17,7 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 	reservation.POST("", h.createReservation, h.getJWTData())
 	reservation.GET("", h.getReservation, h.getJWTData())
 	reservation.PATCH("/approve", h.approveReservation, h.getJWTData())
-	reservation.GET("/free-slots", nil)
+	reservation.GET("/free-slots", h.getFreeSlots)
 }
 
 // getReservation godoc
