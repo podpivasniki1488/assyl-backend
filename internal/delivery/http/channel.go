@@ -39,11 +39,11 @@ func (h *httpDelivery) getChannelMessages(c echo.Context) error {
 
 	var req getChannelMessages
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
 	if err := validate.Struct(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
 	res, err := h.service.Channel.GetByTimePeriod(ctx, req.From, req.To)
