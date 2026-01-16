@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/podpivasniki1488/assyl-backend/internal/model"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
+	"github.com/podpivasniki1488/assyl-backend/pkg"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -19,6 +21,7 @@ type Service struct {
 	Channel        Channel
 	Feedback       Feedback
 	Order          Order
+	Chat           Chat
 }
 
 type Auth interface {
@@ -64,9 +67,18 @@ type Order interface {
 	GetUserOrders(ctx context.Context, req *model.GetOrderRequest, role string) ([]model.Order, error)
 }
 
+type Chat interface {
+	SendMessageToChat(ctx context.Context, message string, chatId, senderId uuid.UUID) error
+	CheckUserAllowance(ctx context.Context, userId, chatId uuid.UUID) (bool, error)
+	SubscribeToUpdates(userID uuid.UUID) (chan pkg.HubMessage, func())
+	StartNewChat(ctx context.Context, creatorID uuid.UUID, participantsIDs []uuid.UUID) (uuid.UUID, error)
+}
+
 func NewService(
 	repo *repository.Repository,
 	redisCli *redis.Client,
+	logger *slog.Logger,
+	hub *pkg.Hub,
 	secretKey string,
 ) *Service {
 	return &Service{
@@ -78,5 +90,6 @@ func NewService(
 		Channel:        NewChannelService(repo),
 		Feedback:       NewFeedback(repo),
 		Order:          NewOrderService(repo),
+		Chat:           NewChat(repo, logger, hub),
 	}
 }
