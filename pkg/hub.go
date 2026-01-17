@@ -29,13 +29,18 @@ func (h *Hub) Subscribe(userId uuid.UUID) (chan HubMessage, func()) {
 	h.mux.Lock()
 	defer h.mux.Unlock()
 
+	if prev, ok := h.subs[userId]; ok {
+		close(prev)
+	}
 	ch := make(chan HubMessage)
-	h.subs[userId] = ch
 
+	h.subs[userId] = ch
 	unsubscribe := func() {
 		h.mux.Lock()
-		delete(h.subs, userId)
-		close(ch)
+		if curr, ok := h.subs[userId]; ok && curr == ch {
+			close(ch)
+			delete(h.subs, userId)
+		}
 		h.mux.Unlock()
 	}
 
@@ -51,7 +56,10 @@ func (h *Hub) Publish(userId uuid.UUID, msg HubMessage) error {
 		return ErrSubNotFound
 	}
 
-	ch <- msg
-
-	return nil
+	select {
+	case ch <- msg:
+		return nil
+	default:
+		return errors.New("channel is full")
+	}
 }

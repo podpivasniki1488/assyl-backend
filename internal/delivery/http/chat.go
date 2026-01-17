@@ -34,7 +34,7 @@ func (h *httpDelivery) startChat(c echo.Context) error {
 
 	userId, ok := c.Get("user_id").(string)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse("role not found in context"))
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("user id not found in context"))
 	}
 
 	parsed, err := uuid.Parse(userId)
@@ -105,7 +105,7 @@ type sendMsgToChatRequest struct {
 
 // use when user wants to listen for last messages
 func (h *httpDelivery) getUserLastMessages(c echo.Context) error {
-	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getUserLastMessages")
+	_, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getUserLastMessages")
 	defer span.End()
 
 	userId, ok := c.Get("user_id").(string)
@@ -120,7 +120,8 @@ func (h *httpDelivery) getUserLastMessages(c echo.Context) error {
 
 	conn, err := Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+		h.logger.Error("failed to upgrade websocket", "error", err)
+		return err
 	}
 	defer conn.Close()
 
@@ -148,15 +149,17 @@ func (h *httpDelivery) getUserLastMessages(c echo.Context) error {
 			}
 
 			if err = conn.WriteJSON(msg); err != nil {
-				return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+				h.logger.Error("failed to write message", "error", err)
+				return err
 			}
 
-		case <-ctx.Done():
+		case <-done:
 			return nil
 
 		case <-ticker.C:
 			if err = conn.WriteControl(websocket.PingMessage, []byte("ping"), time.Now().Add(5*time.Second)); err != nil {
-				return c.JSON(http.StatusInternalServerError, ErrorResponse(err.Error()))
+				h.logger.Error("failed to send ping", "error", err)
+				return nil
 			}
 		}
 	}

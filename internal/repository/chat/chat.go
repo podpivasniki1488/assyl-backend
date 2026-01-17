@@ -99,6 +99,10 @@ func (c *chat) CreateChat(ctx context.Context, creatorID uuid.UUID, participants
 	defer span.End()
 
 	tx := c.pgDB.WithContext(ctx).Begin()
+	if err := tx.Error; err != nil {
+		return nil, model.ErrDBUnexpected.WithErr(err)
+	}
+	defer tx.Rollback()
 
 	isPrivate := false
 	if len(participantsIDs) == 2 {
@@ -130,6 +134,10 @@ func (c *chat) CreateChat(ctx context.Context, creatorID uuid.UUID, participants
 			tx.Rollback()
 			return nil, model.ErrDBUnexpected.WithErr(err)
 		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, model.ErrDBUnexpected.WithErr(err)
 	}
 
 	return &newChat.ID, nil

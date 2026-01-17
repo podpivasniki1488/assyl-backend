@@ -40,7 +40,7 @@ func (c *chat) CheckUserAllowance(ctx context.Context, userId, chatId uuid.UUID)
 	ctx, span := c.tracer.Start(ctx, "chatService.CheckUserAllowance")
 	defer span.End()
 
-	ok, err := c.repo.ChatRepo.CheckUserInChat(ctx, chatId, userId)
+	ok, err := c.repo.ChatRepo.CheckUserInChat(ctx, userId, chatId)
 	if err != nil {
 		return false, err
 	}
@@ -75,16 +75,16 @@ func (c *chat) SendMessageToChat(ctx context.Context, message string, chatId, se
 
 	// change LastMessagePreview, LastParticipantId, and LastMessageAt in goroutine
 	go func() {
-		if err = c.repo.ChatRepo.ChangeLastChatInfo(ctx, message, senderId, chatId); err != nil {
-			c.logger.Error("could not update last chat info:", err)
+		if updateErr := c.repo.ChatRepo.ChangeLastChatInfo(context.Background(), message, senderId, chatId); updateErr != nil {
+			c.logger.Error("could not update last chat info:", updateErr)
 		}
 	}()
 
 	go func() {
-		if err = c.hub.Publish(senderId, pkg.HubMessage{
+		if pubErr := c.hub.Publish(senderId, pkg.HubMessage{
 			ChatID: chatId,
 			Text:   message,
-		}); err != nil {
+		}); pubErr != nil {
 			c.logger.Error("could not publish message to hub:", err)
 		}
 	}()
