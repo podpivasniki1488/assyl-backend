@@ -54,14 +54,23 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	parsedDate, err := time.Parse("2006-01-02", req.Date)
+	if err = validate.Struct(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	parsedStartDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
+	}
+
+	parsedEndDate, err := time.Parse("2006-01-02", req.EndDate)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
 	}
 
 	resp, err := h.service.Reservation.GetUserReservations(ctx, model.CinemaReservation{
 		UserID: parsed,
-	}, parsedDate)
+	}, parsedStartDate, parsedEndDate)
 	if err != nil {
 		return h.handleErrResponse(c, err)
 	}
@@ -70,6 +79,11 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 		Status: "success",
 		Data:   resp,
 	})
+}
+
+type getReservationRequest struct {
+	StartDate string `query:"start_date" validate:"required"`
+	EndDate   string `query:"end_date" validate:"required"`
 }
 
 // approveReservation godoc
@@ -197,7 +211,7 @@ func (h *httpDelivery) getFreeSlots(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getFreeSlots")
 	defer span.End()
 
-	var req getReservationRequest
+	var req getFreeSlotsRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
@@ -226,7 +240,7 @@ func (h *httpDelivery) getFreeSlots(c echo.Context) error {
 	})
 }
 
-type getReservationRequest struct {
+type getFreeSlotsRequest struct {
 	Date string `query:"date" validate:"required"`
 }
 
