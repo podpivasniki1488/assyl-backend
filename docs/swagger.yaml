@@ -823,16 +823,10 @@ paths:
       description: Возвращает список бронирований текущего пользователя за период
         (from-to).
       parameters:
-      - description: Start datetime (RFC3339)
-        example: "2025-12-29T10:00:00Z"
+      - description: Datetime (YYYY-MM-DD)
+        example: "2026-01-07"
         in: query
-        name: from
-        required: true
-        type: string
-      - description: End datetime (RFC3339)
-        example: "2025-12-29T12:00:00Z"
-        in: query
-        name: to
+        name: date
         required: true
         type: string
       produces:
@@ -943,16 +937,10 @@ paths:
         Возвращает список свободных временных интервалов в заданном диапазоне.
         Свободный слот — это интервал времени, не пересекающийся ни с одной резервацией.
       parameters:
-      - description: Start datetime (RFC3339)
-        example: "2026-01-07T00:00:00Z"
+      - description: Datetime (YYYY-MM-DD)
+        example: "2026-01-07"
         in: query
-        name: from
-        required: true
-        type: string
-      - description: End datetime (RFC3339)
-        example: "2026-01-07T23:59:00Z"
-        in: query
-        name: to
+        name: date
         required: true
         type: string
       produces:

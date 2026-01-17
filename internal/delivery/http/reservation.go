@@ -28,8 +28,7 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			from	query		string										true	"Start datetime (RFC3339)"	example(2025-12-29T10:00:00Z)
-//	@Param			to		query		string										true	"End datetime (RFC3339)"	example(2025-12-29T12:00:00Z)
+//	@Param			date	query		string										true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
 //	@Success		200		{object}	DefaultResponse[[]model.CinemaReservation]	"Успех"
 //	@Failure		400		{object}	DefaultResponse[error]						"Невалидный запрос"
 //	@Failure		401		{object}	DefaultResponse[error]						"Неавторизован"
@@ -188,8 +187,7 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 //	@Tags			reservation
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			from	query		string									true	"Start datetime (RFC3339)"	example(2026-01-07T00:00:00Z)
-//	@Param			to		query		string									true	"End datetime (RFC3339)"	example(2026-01-07T23:59:00Z)
+//	@Param			date	query		string									true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
 //	@Success		200		{object}	DefaultResponse[getFreeSlotsResponse]	"List of free time intervals"
 //	@Failure		400		{object}	DefaultResponse[error]					"Invalid request"
 //	@Failure		401		{object}	DefaultResponse[error]					"Unauthorized"

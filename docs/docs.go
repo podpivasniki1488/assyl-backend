@@ -754,17 +754,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "2025-12-29T10:00:00Z",
-                        "description": "Start datetime (RFC3339)",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "2025-12-29T12:00:00Z",
-                        "description": "End datetime (RFC3339)",
-                        "name": "to",
+                        "example": "2026-01-07",
+                        "description": "Datetime (YYYY-MM-DD)",
+                        "name": "date",
                         "in": "query",
                         "required": true
                     }
@@ -937,17 +929,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "2026-01-07T00:00:00Z",
-                        "description": "Start datetime (RFC3339)",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "2026-01-07T23:59:00Z",
-                        "description": "End datetime (RFC3339)",
-                        "name": "to",
+                        "example": "2026-01-07",
+                        "description": "Datetime (YYYY-MM-DD)",
+                        "name": "date",
                         "in": "query",
                         "required": true
                     }
