@@ -28,13 +28,13 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			from	query		string										true	"Start datetime (RFC3339)"	example(2025-12-29T10:00:00Z)
-//	@Param			to		query		string										true	"End datetime (RFC3339)"	example(2025-12-29T12:00:00Z)
-//	@Success		200		{object}	DefaultResponse[[]model.CinemaReservation]	"Успех"
-//	@Failure		400		{object}	DefaultResponse[error]						"Невалидный запрос"
-//	@Failure		401		{object}	DefaultResponse[error]						"Неавторизован"
-//	@Failure		403		{object}	DefaultResponse[error]						"Нет доступа"
-//	@Failure		500		{object}	DefaultResponse[error]						"Внутренняя ошибка сервера"
+//	@Param			start_date	query		string										true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
+//	@Param			end_date	query		string										true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
+//	@Success		200			{object}	DefaultResponse[[]model.CinemaReservation]	"Успех"
+//	@Failure		400			{object}	DefaultResponse[error]						"Невалидный запрос"
+//	@Failure		401			{object}	DefaultResponse[error]						"Неавторизован"
+//	@Failure		403			{object}	DefaultResponse[error]						"Нет доступа"
+//	@Failure		500			{object}	DefaultResponse[error]						"Внутренняя ошибка сервера"
 //	@Router			/reservation [get]
 func (h *httpDelivery) getReservation(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getReservation")
@@ -52,18 +52,24 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 
 	var req getReservationRequest
 	if err = c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	if req.From.IsZero() && req.To.IsZero() {
-		return echo.NewHTTPError(http.StatusBadRequest, ErrorResponse("from, to, and people_num are required"))
+	if err = validate.Struct(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	resp, err := h.service.Reservation.GetUserReservations(ctx, model.CinemaReservation{
-		StartTime: req.From,
-		EndTime:   req.To,
-		UserID:    parsed,
-	})
+	parsedStartDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
+	}
+
+	parsedEndDate, err := time.Parse("2006-01-02", req.EndDate)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
+	}
+
+	resp, err := h.service.Reservation.GetUserReservations(ctx, parsed, parsedStartDate, parsedEndDate)
 	if err != nil {
 		return h.handleErrResponse(c, err)
 	}
@@ -72,6 +78,11 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 		Status: "success",
 		Data:   resp,
 	})
+}
+
+type getReservationRequest struct {
+	StartDate string `query:"start_date" validate:"required"`
+	EndDate   string `query:"end_date" validate:"required"`
 }
 
 // approveReservation godoc
@@ -161,12 +172,17 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse("failed to get role from context"))
 	}
 
-	if err = h.service.Reservation.MakeReservation(ctx, &model.CinemaReservation{
-		StartTime: req.From,
-		EndTime:   req.To,
-		PeopleNum: req.PeopleNum,
-		UserID:    parsed,
-	}, role, username); err != nil {
+	parsedDate, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
+	}
+
+	positions := make([]int16, 0, len(req.TimeSlots))
+	for _, p := range req.TimeSlots {
+		positions = append(positions, int16(p))
+	}
+
+	if err = h.service.Reservation.MakeReservation(ctx, parsed, parsedDate, positions, req.PeopleNum, role, username); err != nil {
 		return h.handleErrResponse(c, err)
 	}
 
@@ -184,40 +200,52 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 //	@Tags			reservation
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			from	query		string								true	"Start datetime (RFC3339)"	example(2026-01-07T00:00:00Z)
-//	@Param			to		query		string								true	"End datetime (RFC3339)"	example(2026-01-07T23:59:00Z)
-//	@Success		200		{object}	DefaultResponse[[]model.TimeRange]	"List of free time intervals"
-//	@Failure		400		{object}	DefaultResponse[error]				"Invalid request"
-//	@Failure		401		{object}	DefaultResponse[error]				"Unauthorized"
-//	@Failure		500		{object}	DefaultResponse[error]				"Internal server error"
+//	@Param			date	query		string									true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
+//	@Success		200		{object}	DefaultResponse[getFreeSlotsResponse]	"List of free time intervals"
+//	@Failure		400		{object}	DefaultResponse[error]					"Invalid request"
+//	@Failure		401		{object}	DefaultResponse[error]					"Unauthorized"
+//	@Failure		500		{object}	DefaultResponse[error]					"Internal server error"
 //	@Router			/reservation/free-slots [get]
 func (h *httpDelivery) getFreeSlots(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getFreeSlots")
 	defer span.End()
 
-	var req getReservationRequest
+	var req getFreeSlotsRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	if req.From.IsZero() || req.To.IsZero() {
-		return c.JSON(http.StatusBadRequest, ErrorResponse("from and to are required"))
+	if err := validate.Struct(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
-	res, err := h.service.Reservation.GetFreeSlots(ctx, req.From, req.To)
+	if req.Date == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("date is required"))
+	}
+
+	parsedDate, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
+	}
+
+	free, pairs, err := h.service.Reservation.GetFreeSlots(ctx, parsedDate)
 	if err != nil {
 		return h.handleErrResponse(c, err)
 	}
 
-	return c.JSON(http.StatusOK, DefaultResponse[[]model.TimeRange]{
-		Data:   res,
+	return c.JSON(http.StatusOK, DefaultResponse[getFreeSlotsResponse]{
+		Data:   getFreeSlotsResponse{Free: free, Pairs: pairs},
 		Status: "success",
 	})
 }
 
-type getReservationRequest struct {
-	From time.Time `query:"from"`
-	To   time.Time `query:"to"`
+type getFreeSlotsRequest struct {
+	Date string `query:"date" validate:"required"`
+}
+
+type getFreeSlotsResponse struct {
+	Free  []model.DailySlot `json:"free_slots"`
+	Pairs [][2]int16        `json:"free_pairs"`
 }
 
 type approveReservationRequest struct {
@@ -225,7 +253,7 @@ type approveReservationRequest struct {
 }
 
 type createReservationRequest struct {
-	From      time.Time `json:"from" validate:"required"`
-	To        time.Time `json:"to" validate:"required,gtfield=From"`
-	PeopleNum uint8     `json:"people_num" validate:"required,gt=1,lt=12"`
+	TimeSlots []int  `json:"time_slots" validate:"required"`
+	PeopleNum uint8  `json:"people_num" validate:"required,gt=1,lt=12"`
+	Date      string `json:"date" validate:"required"` //2026-01-17
 }

@@ -22,7 +22,7 @@ func (h *httpDelivery) registerChannelHandlers(v1 *echo.Group) {
 //
 //	@Summary		Get channel messages
 //	@Description	Returns channel messages within the time period.
-//	@Tags			Channel
+//	@Tags			channel
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
@@ -39,11 +39,11 @@ func (h *httpDelivery) getChannelMessages(c echo.Context) error {
 
 	var req getChannelMessages
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
 	if err := validate.Struct(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, ErrorResponse(err.Error()))
 	}
 
 	res, err := h.service.Channel.GetByTimePeriod(ctx, req.From, req.To)
@@ -61,7 +61,7 @@ func (h *httpDelivery) getChannelMessages(c echo.Context) error {
 //
 //	@Summary		Send channel message
 //	@Description	Sends a message to the channel. Only ADMIN or GOD can send.
-//	@Tags			Channel
+//	@Tags			channel
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth

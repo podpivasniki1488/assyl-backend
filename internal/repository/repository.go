@@ -9,6 +9,7 @@ import (
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/feedback"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/order"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/reservation"
+	"github.com/podpivasniki1488/assyl-backend/internal/repository/slot"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository/user"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"gorm.io/driver/postgres"
@@ -24,6 +25,7 @@ type Repository struct {
 	FeedbackRepo    feedback.FeedbackRepo
 	OrderRepo       order.OrderRepo
 	ChatRepo        chat.ChatRepo
+	SlotRepo        slot.SlotRepo
 }
 
 func MustInitDb(dsn string) *gorm.DB {
@@ -46,6 +48,9 @@ func MustInitDb(dsn string) *gorm.DB {
 		&model.Order{},
 		&model.Chat{},
 		&model.ChatParticipant{},
+		&model.SlotTemplate{},
+		&model.DailySlot{},
+		&model.ReservationSlot{},
 	); err != nil {
 		panic(err)
 	}
@@ -62,6 +67,7 @@ func NewRepository(db *gorm.DB, mongoClient *mongo.Client, debug bool, gmailUser
 		ChannelRepo:     channel.NewChanRepository(db),
 		FeedbackRepo:    feedback.NewFeedbackRepository(db),
 		OrderRepo:       order.NewOrderRepository(db),
+		SlotRepo:        slot.NewSlotRepo(db),
 		ChatRepo:        chat.NewChatRepo(db, mongoClient, debug),
 	}
 }

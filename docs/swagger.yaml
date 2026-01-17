@@ -33,20 +33,18 @@ definitions:
       status:
         type: string
     type: object
-  http.DefaultResponse-array_model_TimeRange:
+  http.DefaultResponse-error:
     properties:
-      data:
-        items:
-          $ref: '#/definitions/model.TimeRange'
-        type: array
+      data: {}
       error_message:
         type: string
       status:
         type: string
     type: object
-  http.DefaultResponse-error:
+  http.DefaultResponse-http_getFreeSlotsResponse:
     properties:
-      data: {}
+      data:
+        $ref: '#/definitions/http.getFreeSlotsResponse'
       error_message:
         type: string
       status:
@@ -125,16 +123,19 @@ definitions:
     type: object
   http.createReservationRequest:
     properties:
-      from:
+      date:
+        description: "2026-01-17"
         type: string
       people_num:
         type: integer
-      to:
-        type: string
+      time_slots:
+        items:
+          type: integer
+        type: array
     required:
-    - from
+    - date
     - people_num
-    - to
+    - time_slots
     type: object
   http.deleteUserRequest:
     properties:
@@ -142,6 +143,20 @@ definitions:
         type: string
     required:
     - username
+    type: object
+  http.getFreeSlotsResponse:
+    properties:
+      free_pairs:
+        items:
+          items:
+            format: int32
+            type: integer
+          type: array
+        type: array
+      free_slots:
+        items:
+          $ref: '#/definitions/model.DailySlot'
+        type: array
     type: object
   http.loginRequest:
     properties:
@@ -223,10 +238,29 @@ definitions:
         type: integer
       phone_num:
         type: string
+      slot_type:
+        type: integer
       start_time:
         type: string
       user_id:
         type: string
+    type: object
+  model.DailySlot:
+    properties:
+      end_at:
+        type: string
+      id:
+        type: integer
+      is_enabled:
+        type: boolean
+      position:
+        type: integer
+      slot_date:
+        type: string
+      start_at:
+        type: string
+      template_id:
+        type: integer
     type: object
   model.Order:
     properties:
@@ -237,13 +271,6 @@ definitions:
       text:
         type: string
       user_id:
-        type: string
-    type: object
-  model.TimeRange:
-    properties:
-      end:
-        type: string
-      start:
         type: string
     type: object
   model.User:
@@ -581,7 +608,7 @@ paths:
       - BearerAuth: []
       summary: Get channel messages
       tags:
-      - Channel
+      - channel
     post:
       consumes:
       - application/json
@@ -620,7 +647,7 @@ paths:
       - BearerAuth: []
       summary: Send channel message
       tags:
-      - Channel
+      - channel
   /feedback:
     get:
       consumes:
@@ -796,16 +823,16 @@ paths:
       description: Возвращает список бронирований текущего пользователя за период
         (from-to).
       parameters:
-      - description: Start datetime (RFC3339)
-        example: "2025-12-29T10:00:00Z"
+      - description: Datetime (YYYY-MM-DD)
+        example: "2026-01-07"
         in: query
-        name: from
+        name: start_date
         required: true
         type: string
-      - description: End datetime (RFC3339)
-        example: "2025-12-29T12:00:00Z"
+      - description: Datetime (YYYY-MM-DD)
+        example: "2026-01-07"
         in: query
-        name: to
+        name: end_date
         required: true
         type: string
       produces:
@@ -916,16 +943,10 @@ paths:
         Возвращает список свободных временных интервалов в заданном диапазоне.
         Свободный слот — это интервал времени, не пересекающийся ни с одной резервацией.
       parameters:
-      - description: Start datetime (RFC3339)
-        example: "2026-01-07T00:00:00Z"
+      - description: Datetime (YYYY-MM-DD)
+        example: "2026-01-07"
         in: query
-        name: from
-        required: true
-        type: string
-      - description: End datetime (RFC3339)
-        example: "2026-01-07T23:59:00Z"
-        in: query
-        name: to
+        name: date
         required: true
         type: string
       produces:
@@ -934,7 +955,7 @@ paths:
         "200":
           description: List of free time intervals
           schema:
-            $ref: '#/definitions/http.DefaultResponse-array_model_TimeRange'
+            $ref: '#/definitions/http.DefaultResponse-http_getFreeSlotsResponse'
         "400":
           description: Invalid request
           schema:

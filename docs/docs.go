@@ -365,7 +365,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Channel"
+                    "channel"
                 ],
                 "summary": "Get channel messages",
                 "parameters": [
@@ -427,7 +427,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Channel"
+                    "channel"
                 ],
                 "summary": "Send channel message",
                 "parameters": [
@@ -754,17 +754,17 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "2025-12-29T10:00:00Z",
-                        "description": "Start datetime (RFC3339)",
-                        "name": "from",
+                        "example": "2026-01-07",
+                        "description": "Datetime (YYYY-MM-DD)",
+                        "name": "start_date",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "example": "2025-12-29T12:00:00Z",
-                        "description": "End datetime (RFC3339)",
-                        "name": "to",
+                        "example": "2026-01-07",
+                        "description": "Datetime (YYYY-MM-DD)",
+                        "name": "end_date",
                         "in": "query",
                         "required": true
                     }
@@ -937,17 +937,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "2026-01-07T00:00:00Z",
-                        "description": "Start datetime (RFC3339)",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "2026-01-07T23:59:00Z",
-                        "description": "End datetime (RFC3339)",
-                        "name": "to",
+                        "example": "2026-01-07",
+                        "description": "Datetime (YYYY-MM-DD)",
+                        "name": "date",
                         "in": "query",
                         "required": true
                     }
@@ -956,7 +948,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of free time intervals",
                         "schema": {
-                            "$ref": "#/definitions/http.DefaultResponse-array_model_TimeRange"
+                            "$ref": "#/definitions/http.DefaultResponse-http_getFreeSlotsResponse"
                         }
                     },
                     "400": {
@@ -1093,15 +1085,10 @@ const docTemplate = `{
                 }
             }
         },
-        "http.DefaultResponse-array_model_TimeRange": {
+        "http.DefaultResponse-error": {
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.TimeRange"
-                    }
-                },
+                "data": {},
                 "error_message": {
                     "type": "string"
                 },
@@ -1110,10 +1097,12 @@ const docTemplate = `{
                 }
             }
         },
-        "http.DefaultResponse-error": {
+        "http.DefaultResponse-http_getFreeSlotsResponse": {
             "type": "object",
             "properties": {
-                "data": {},
+                "data": {
+                    "$ref": "#/definitions/http.getFreeSlotsResponse"
+                },
                 "error_message": {
                     "type": "string"
                 },
@@ -1234,19 +1223,23 @@ const docTemplate = `{
         "http.createReservationRequest": {
             "type": "object",
             "required": [
-                "from",
+                "date",
                 "people_num",
-                "to"
+                "time_slots"
             ],
             "properties": {
-                "from": {
+                "date": {
+                    "description": "2026-01-17",
                     "type": "string"
                 },
                 "people_num": {
                     "type": "integer"
                 },
-                "to": {
-                    "type": "string"
+                "time_slots": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -1258,6 +1251,27 @@ const docTemplate = `{
             "properties": {
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "http.getFreeSlotsResponse": {
+            "type": "object",
+            "properties": {
+                "free_pairs": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    }
+                },
+                "free_slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DailySlot"
+                    }
                 }
             }
         },
@@ -1380,11 +1394,40 @@ const docTemplate = `{
                 "phone_num": {
                     "type": "string"
                 },
+                "slot_type": {
+                    "type": "integer"
+                },
                 "start_time": {
                     "type": "string"
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "model.DailySlot": {
+            "type": "object",
+            "properties": {
+                "end_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "slot_date": {
+                    "type": "string"
+                },
+                "start_at": {
+                    "type": "string"
+                },
+                "template_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -1401,17 +1444,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.TimeRange": {
-            "type": "object",
-            "properties": {
-                "end": {
-                    "type": "string"
-                },
-                "start": {
                     "type": "string"
                 }
             }
