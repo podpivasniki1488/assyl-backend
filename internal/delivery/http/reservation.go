@@ -188,12 +188,12 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 //	@Tags			reservation
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			from	query		string								true	"Start datetime (RFC3339)"	example(2026-01-07T00:00:00Z)
-//	@Param			to		query		string								true	"End datetime (RFC3339)"	example(2026-01-07T23:59:00Z)
+//	@Param			from	query		string									true	"Start datetime (RFC3339)"	example(2026-01-07T00:00:00Z)
+//	@Param			to		query		string									true	"End datetime (RFC3339)"	example(2026-01-07T23:59:00Z)
 //	@Success		200		{object}	DefaultResponse[getFreeSlotsResponse]	"List of free time intervals"
-//	@Failure		400		{object}	DefaultResponse[error]				"Invalid request"
-//	@Failure		401		{object}	DefaultResponse[error]				"Unauthorized"
-//	@Failure		500		{object}	DefaultResponse[error]				"Internal server error"
+//	@Failure		400		{object}	DefaultResponse[error]					"Invalid request"
+//	@Failure		401		{object}	DefaultResponse[error]					"Unauthorized"
+//	@Failure		500		{object}	DefaultResponse[error]					"Internal server error"
 //	@Router			/reservation/free-slots [get]
 func (h *httpDelivery) getFreeSlots(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getFreeSlots")

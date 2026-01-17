@@ -956,7 +956,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of free time intervals",
                         "schema": {
-                            "$ref": "#/definitions/http.DefaultResponse-array_model_TimeRange"
+                            "$ref": "#/definitions/http.DefaultResponse-http_getFreeSlotsResponse"
                         }
                     },
                     "400": {
@@ -1093,15 +1093,10 @@ const docTemplate = `{
                 }
             }
         },
-        "http.DefaultResponse-array_model_TimeRange": {
+        "http.DefaultResponse-error": {
             "type": "object",
             "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.TimeRange"
-                    }
-                },
+                "data": {},
                 "error_message": {
                     "type": "string"
                 },
@@ -1110,10 +1105,12 @@ const docTemplate = `{
                 }
             }
         },
-        "http.DefaultResponse-error": {
+        "http.DefaultResponse-http_getFreeSlotsResponse": {
             "type": "object",
             "properties": {
-                "data": {},
+                "data": {
+                    "$ref": "#/definitions/http.getFreeSlotsResponse"
+                },
                 "error_message": {
                     "type": "string"
                 },
@@ -1265,6 +1262,27 @@ const docTemplate = `{
                 }
             }
         },
+        "http.getFreeSlotsResponse": {
+            "type": "object",
+            "properties": {
+                "free_pairs": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    }
+                },
+                "free_slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DailySlot"
+                    }
+                }
+            }
+        },
         "http.loginRequest": {
             "type": "object",
             "required": [
@@ -1395,6 +1413,32 @@ const docTemplate = `{
                 }
             }
         },
+        "model.DailySlot": {
+            "type": "object",
+            "properties": {
+                "end_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "slot_date": {
+                    "type": "string"
+                },
+                "start_at": {
+                    "type": "string"
+                },
+                "template_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Order": {
             "type": "object",
             "properties": {
@@ -1408,17 +1452,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.TimeRange": {
-            "type": "object",
-            "properties": {
-                "end": {
-                    "type": "string"
-                },
-                "start": {
                     "type": "string"
                 }
             }

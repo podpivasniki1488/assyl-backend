@@ -33,20 +33,18 @@ definitions:
       status:
         type: string
     type: object
-  http.DefaultResponse-array_model_TimeRange:
+  http.DefaultResponse-error:
     properties:
-      data:
-        items:
-          $ref: '#/definitions/model.TimeRange'
-        type: array
+      data: {}
       error_message:
         type: string
       status:
         type: string
     type: object
-  http.DefaultResponse-error:
+  http.DefaultResponse-http_getFreeSlotsResponse:
     properties:
-      data: {}
+      data:
+        $ref: '#/definitions/http.getFreeSlotsResponse'
       error_message:
         type: string
       status:
@@ -146,6 +144,20 @@ definitions:
     required:
     - username
     type: object
+  http.getFreeSlotsResponse:
+    properties:
+      free_pairs:
+        items:
+          items:
+            format: int32
+            type: integer
+          type: array
+        type: array
+      free_slots:
+        items:
+          $ref: '#/definitions/model.DailySlot'
+        type: array
+    type: object
   http.loginRequest:
     properties:
       password:
@@ -233,6 +245,23 @@ definitions:
       user_id:
         type: string
     type: object
+  model.DailySlot:
+    properties:
+      end_at:
+        type: string
+      id:
+        type: integer
+      is_enabled:
+        type: boolean
+      position:
+        type: integer
+      slot_date:
+        type: string
+      start_at:
+        type: string
+      template_id:
+        type: integer
+    type: object
   model.Order:
     properties:
       id:
@@ -242,13 +271,6 @@ definitions:
       text:
         type: string
       user_id:
-        type: string
-    type: object
-  model.TimeRange:
-    properties:
-      end:
-        type: string
-      start:
         type: string
     type: object
   model.User:
@@ -939,7 +961,7 @@ paths:
         "200":
           description: List of free time intervals
           schema:
-            $ref: '#/definitions/http.DefaultResponse-array_model_TimeRange'
+            $ref: '#/definitions/http.DefaultResponse-http_getFreeSlotsResponse'
         "400":
           description: Invalid request
           schema:
