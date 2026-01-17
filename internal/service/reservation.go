@@ -30,9 +30,12 @@ func NewReservation(repo *repository.Repository) Reservation {
 	}
 }
 
-func (r *reservation) GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error) {
+func (r *reservation) GetUserReservations(ctx context.Context, req model.CinemaReservation, date time.Time) ([]model.CinemaReservation, error) {
 	ctx, span := r.tracer.Start(ctx, "reservation.GetReservation")
 	defer span.End()
+
+	startTime := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	endTime := startTime.Add(24 * time.Hour)
 
 	user, err := r.repo.UserRepo.FindById(ctx, req.UserID)
 	if err != nil {
@@ -42,9 +45,9 @@ func (r *reservation) GetUserReservations(ctx context.Context, req model.CinemaR
 	isApproved := true
 
 	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
-		StartTimeFrom: req.StartTime,
-		EndTimeTo:     req.EndTime,
 		IsApproved:    &isApproved,
+		StartTimeFrom: startTime,
+		EndTimeTo:     endTime,
 	})
 	if err != nil {
 		return nil, err

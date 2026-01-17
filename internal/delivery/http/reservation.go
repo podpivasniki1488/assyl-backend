@@ -37,39 +37,40 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 //	@Failure		500		{object}	DefaultResponse[error]						"Внутренняя ошибка сервера"
 //	@Router			/reservation [get]
 func (h *httpDelivery) getReservation(c echo.Context) error {
-	_, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getReservation")
+	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getReservation")
 	defer span.End()
 
-	return nil
+	userId, ok := c.Get("user_id").(string)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse("failed to get user_id from context"))
+	}
 
-	//userId, ok := c.Get("user_id").(string)
-	//if !ok {
-	//	return c.JSON(http.StatusInternalServerError, ErrorResponse("failed to get user_id from context"))
-	//}
-	//
-	//parsed, err := uuid.Parse(userId)
-	//if err != nil {
-	//	return c.JSON(http.StatusUnauthorized, ErrorResponse("invalid user id"))
-	//}
-	//
-	//var req getReservationRequest
-	//if err = c.Bind(&req); err != nil {
-	//	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	//}
-	//
-	////resp, err := h.service.Reservation.GetUserReservations(ctx, model.CinemaReservation{
-	////	StartTime: req.From,
-	////	EndTime:   req.To,
-	////	UserID:    parsed,
-	////})
-	////if err != nil {
-	////	return h.handleErrResponse(c, err)
-	////}
-	//
-	//return c.JSON(http.StatusOK, DefaultResponse[[]model.CinemaReservation]{
-	//	Status: "success",
-	//	Data:   resp,
-	//})
+	parsed, err := uuid.Parse(userId)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse("invalid user id"))
+	}
+
+	var req getReservationRequest
+	if err = c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	parsedDate, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
+	}
+
+	resp, err := h.service.Reservation.GetUserReservations(ctx, model.CinemaReservation{
+		UserID: parsed,
+	}, parsedDate)
+	if err != nil {
+		return h.handleErrResponse(c, err)
+	}
+
+	return c.JSON(http.StatusOK, DefaultResponse[[]model.CinemaReservation]{
+		Status: "success",
+		Data:   resp,
+	})
 }
 
 // approveReservation godoc
@@ -189,7 +190,7 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 //	@Produce		json
 //	@Param			from	query		string								true	"Start datetime (RFC3339)"	example(2026-01-07T00:00:00Z)
 //	@Param			to		query		string								true	"End datetime (RFC3339)"	example(2026-01-07T23:59:00Z)
-//	@Success		200		{object}	DefaultResponse[[]model.TimeRange]	"List of free time intervals"
+//	@Success		200		{object}	DefaultResponse[getFreeSlotsResponse]	"List of free time intervals"
 //	@Failure		400		{object}	DefaultResponse[error]				"Invalid request"
 //	@Failure		401		{object}	DefaultResponse[error]				"Unauthorized"
 //	@Failure		500		{object}	DefaultResponse[error]				"Internal server error"

@@ -43,7 +43,7 @@ type Apartment interface {
 
 type Reservation interface {
 	MakeReservation(ctx context.Context, userID uuid.UUID, date time.Time, positions []int16, peopleNum uint8, role, username string) error
-	GetUserReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
+	GetUserReservations(ctx context.Context, req model.CinemaReservation, date time.Time) ([]model.CinemaReservation, error)
 	GetUnfilteredReservations(ctx context.Context, req model.CinemaReservation) ([]model.CinemaReservation, error)
 	ApproveReservation(ctx context.Context, id uuid.UUID) error
 	GetFreeSlots(ctx context.Context, date time.Time) ([]model.DailySlot, [][2]int16, error)
