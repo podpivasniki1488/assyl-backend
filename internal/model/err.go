@@ -47,4 +47,9 @@ var (
 	ErrTooManyPeople         = AppError{HttpStatusCode: http.StatusBadRequest, Message: "too many people"}
 	ErrReservationImpossible = AppError{HttpStatusCode: http.StatusBadRequest, Message: "reservation impossible"}
 	ErrAdminsCannotBeDeleted = AppError{HttpStatusCode: http.StatusForbidden, Message: "admins can not be deleted"}
+
+	ErrChatNotFound         = AppError{HttpStatusCode: http.StatusNotFound, Message: "chat not found"}
+	ErrUserNotAllowed       = AppError{HttpStatusCode: http.StatusForbidden, Message: "user not allowed to send message to this chat"}
+	ErrSingleChatUser       = AppError{HttpStatusCode: http.StatusBadRequest, Message: "chat must include at least 2 users"}
+	ErrCannotHaveDuplicates = AppError{HttpStatusCode: http.StatusBadRequest, Message: "cannot have duplicates in chat participants"}
 )
