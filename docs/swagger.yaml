@@ -826,7 +826,13 @@ paths:
       - description: Datetime (YYYY-MM-DD)
         example: "2026-01-07"
         in: query
-        name: date
+        name: start_date
+        required: true
+        type: string
+      - description: Datetime (YYYY-MM-DD)
+        example: "2026-01-07"
+        in: query
+        name: end_date
         required: true
         type: string
       produces:

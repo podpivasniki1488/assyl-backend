@@ -756,7 +756,15 @@ const docTemplate = `{
                         "type": "string",
                         "example": "2026-01-07",
                         "description": "Datetime (YYYY-MM-DD)",
-                        "name": "date",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2026-01-07",
+                        "description": "Datetime (YYYY-MM-DD)",
+                        "name": "end_date",
                         "in": "query",
                         "required": true
                     }

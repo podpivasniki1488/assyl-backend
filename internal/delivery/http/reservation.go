@@ -28,12 +28,13 @@ func (h *httpDelivery) registerReservationHandlers(v1 *echo.Group) {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			date	query		string										true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
-//	@Success		200		{object}	DefaultResponse[[]model.CinemaReservation]	"Успех"
-//	@Failure		400		{object}	DefaultResponse[error]						"Невалидный запрос"
-//	@Failure		401		{object}	DefaultResponse[error]						"Неавторизован"
-//	@Failure		403		{object}	DefaultResponse[error]						"Нет доступа"
-//	@Failure		500		{object}	DefaultResponse[error]						"Внутренняя ошибка сервера"
+//	@Param			start_date	query		string										true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
+//	@Param			end_date	query		string										true	"Datetime (YYYY-MM-DD)"	example(2026-01-07)
+//	@Success		200			{object}	DefaultResponse[[]model.CinemaReservation]	"Успех"
+//	@Failure		400			{object}	DefaultResponse[error]						"Невалидный запрос"
+//	@Failure		401			{object}	DefaultResponse[error]						"Неавторизован"
+//	@Failure		403			{object}	DefaultResponse[error]						"Нет доступа"
+//	@Failure		500			{object}	DefaultResponse[error]						"Внутренняя ошибка сервера"
 //	@Router			/reservation [get]
 func (h *httpDelivery) getReservation(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.getReservation")
