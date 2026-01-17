@@ -365,7 +365,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Channel"
+                    "channel"
                 ],
                 "summary": "Get channel messages",
                 "parameters": [
@@ -427,7 +427,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Channel"
+                    "channel"
                 ],
                 "summary": "Send channel message",
                 "parameters": [

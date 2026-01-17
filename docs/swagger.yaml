@@ -608,7 +608,7 @@ paths:
       - BearerAuth: []
       summary: Get channel messages
       tags:
-      - Channel
+      - channel
     post:
       consumes:
       - application/json
@@ -647,7 +647,7 @@ paths:
       - BearerAuth: []
       summary: Send channel message
       tags:
-      - Channel
+      - channel
   /feedback:
     get:
       consumes:

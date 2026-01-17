@@ -205,7 +205,6 @@ func (r *reservation) GetFreeSlots(ctx context.Context, date time.Time) ([]model
 		return nil, nil, err
 	}
 
-	// пары подряд
 	freePos := make(map[int16]bool, len(free))
 	for _, s := range free {
 		freePos[s.Position] = true

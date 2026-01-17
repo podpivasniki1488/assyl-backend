@@ -68,10 +68,10 @@ func (r *slotRepo) EnsureDailySlots(ctx context.Context, date time.Time, tz *tim
 	for _, t := range templates {
 		startAt, endAt := makeRangeByPosition(t.Position)
 		slots = append(slots, model.DailySlot{
-			SlotDate:   dayStart, // type: date в БД
+			SlotDate:   dayStart,
 			TemplateID: t.ID,
 			Position:   t.Position,
-			StartAt:    startAt.UTC(), // храним в UTC
+			StartAt:    startAt.UTC(),
 			EndAt:      endAt.UTC(),
 			IsEnabled:  true,
 		})
