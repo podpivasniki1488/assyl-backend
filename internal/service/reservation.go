@@ -30,14 +30,14 @@ func NewReservation(repo *repository.Repository) Reservation {
 	}
 }
 
-func (r *reservation) GetUserReservations(ctx context.Context, req model.CinemaReservation, start, end time.Time) ([]model.CinemaReservation, error) {
+func (r *reservation) GetUserReservations(ctx context.Context, userId uuid.UUID, start, end time.Time) ([]model.CinemaReservation, error) {
 	ctx, span := r.tracer.Start(ctx, "reservation.GetReservation")
 	defer span.End()
 
 	startTime := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, time.UTC)
 	endTime := time.Date(end.Year(), end.Month(), end.Day(), 23, 59, 59, 0, time.UTC)
 
-	user, err := r.repo.UserRepo.FindById(ctx, req.UserID)
+	user, err := r.repo.UserRepo.FindById(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

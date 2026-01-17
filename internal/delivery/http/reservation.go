@@ -69,9 +69,7 @@ func (h *httpDelivery) getReservation(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse("invalid date format (YYYY-MM-DD)"))
 	}
 
-	resp, err := h.service.Reservation.GetUserReservations(ctx, model.CinemaReservation{
-		UserID: parsed,
-	}, parsedStartDate, parsedEndDate)
+	resp, err := h.service.Reservation.GetUserReservations(ctx, parsed, parsedStartDate, parsedEndDate)
 	if err != nil {
 		return h.handleErrResponse(c, err)
 	}
