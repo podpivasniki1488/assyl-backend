@@ -6,11 +6,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	TenToTwelwe = iota + 1
+	FourteenToSixteen
+	EighteenToToTwenty
+	TwentyTwoToTwentyThree
+)
+
 type CinemaReservation struct {
 	ID         uuid.UUID `gorm:"primary_key;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID     uuid.UUID `gorm:"type:uuid;not null;foreignKey:UserID;references:ID" json:"user_id"`
 	StartTime  time.Time `gorm:"type:timestamp;not null" json:"start_time"`
 	EndTime    time.Time `gorm:"type:timestamp;not null" json:"end_time"`
+	SlotType   int       `gorm:"type:int;varchar;not null" json:"slot_type"`
 	PeopleNum  uint8     `gorm:"not null" json:"people_num"`
 	IsApproved bool      `gorm:"type:boolean;not null" json:"is_approved"`
 	PhoneNum   string    `gorm:"type:varchar;not null" json:"phone_num"`

@@ -125,16 +125,19 @@ definitions:
     type: object
   http.createReservationRequest:
     properties:
-      from:
+      date:
+        description: "2026-01-17"
         type: string
       people_num:
         type: integer
-      to:
-        type: string
+      time_slots:
+        items:
+          type: integer
+        type: array
     required:
-    - from
+    - date
     - people_num
-    - to
+    - time_slots
     type: object
   http.deleteUserRequest:
     properties:
@@ -223,6 +226,8 @@ definitions:
         type: integer
       phone_num:
         type: string
+      slot_type:
+        type: integer
       start_time:
         type: string
       user_id:

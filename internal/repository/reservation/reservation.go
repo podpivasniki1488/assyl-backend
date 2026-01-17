@@ -25,15 +25,25 @@ func NewReservationRepository(db *gorm.DB) ReservationRepo {
 	}
 }
 
-func (r *reservationRepository) CreateReservation(ctx context.Context, reservation *model.CinemaReservation) error {
-	ctx, span := r.tracer.Start(ctx, "reservationRepository.CreateReservation")
-	defer span.End()
+func (r *reservationRepository) CreateReservationsWithSlots(ctx context.Context, res *model.CinemaReservation, dailySlotIDs []uint64) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(res).Error; err != nil {
+			return model.ErrDBUnexpected.WithErr(err)
+		}
 
-	if err := r.db.WithContext(ctx).Create(reservation).Error; err != nil {
-		return model.ErrDBUnexpected.WithErr(err)
-	}
+		for _, slotID := range dailySlotIDs {
+			rs := model.ReservationSlot{
+				ReservationID: res.ID,
+				DailySlotID:   slotID,
+			}
 
-	return nil
+			if err := tx.Create(&rs).Error; err != nil {
+				return model.ErrDBUnexpected.WithErr(err)
+			}
+		}
+
+		return nil
+	})
 }
 
 func (r *reservationRepository) GetByFilters(ctx context.Context, req *model.GetReservationRequest) ([]model.CinemaReservation, error) {

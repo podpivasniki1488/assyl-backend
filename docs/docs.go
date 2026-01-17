@@ -1234,19 +1234,23 @@ const docTemplate = `{
         "http.createReservationRequest": {
             "type": "object",
             "required": [
-                "from",
+                "date",
                 "people_num",
-                "to"
+                "time_slots"
             ],
             "properties": {
-                "from": {
+                "date": {
+                    "description": "2026-01-17",
                     "type": "string"
                 },
                 "people_num": {
                     "type": "integer"
                 },
-                "to": {
-                    "type": "string"
+                "time_slots": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -1379,6 +1383,9 @@ const docTemplate = `{
                 },
                 "phone_num": {
                     "type": "string"
+                },
+                "slot_type": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
