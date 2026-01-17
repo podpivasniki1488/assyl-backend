@@ -42,10 +42,7 @@ func (r *reservation) GetUserReservations(ctx context.Context, userId uuid.UUID,
 		return nil, err
 	}
 
-	isApproved := true
-
 	reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
-		IsApproved:    &isApproved,
 		StartTimeFrom: startTime,
 		EndTimeTo:     endTime,
 	})
