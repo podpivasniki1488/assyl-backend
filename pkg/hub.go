@@ -38,8 +38,8 @@ func (h *Hub) Subscribe(userId uuid.UUID) (chan HubMessage, func()) {
 	unsubscribe := func() {
 		h.mux.Lock()
 		if curr, ok := h.subs[userId]; ok && curr == ch {
-			close(ch)
 			delete(h.subs, userId)
+			close(ch)
 		}
 		h.mux.Unlock()
 	}

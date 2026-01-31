@@ -11,7 +11,17 @@ import (
 
 var Upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		origin := r.Header.Get("Origin")
+
+		allowedOrigins := []string{"http://localhost:3030", "https://assyl-frontend.vercel.app", " https://assyl-c9b2197f0ace.herokuapp.com"}
+
+		for _, allowedOrigin := range allowedOrigins {
+			if origin == allowedOrigin {
+				return true
+			}
+		}
+
+		return false
 	},
 }
 
@@ -132,7 +142,7 @@ func (h *httpDelivery) getUserLastMessages(c echo.Context) error {
 	go func() {
 		defer close(done)
 		for {
-			if _, _, err = conn.ReadMessage(); err != nil {
+			if _, _, readErr := conn.ReadMessage(); readErr != nil {
 				return
 			}
 		}
