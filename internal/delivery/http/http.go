@@ -22,9 +22,9 @@ type httpDelivery struct {
 	jwtSecret string
 }
 
-func NewHTTPDelivery(logger *slog.Logger, s *service.Service, jwtSecret string) Http {
+func NewHTTPDelivery(logger *slog.Logger, e *echo.Echo, s *service.Service, jwtSecret string) Http {
 	return &httpDelivery{
-		echoApp:   echo.New(),
+		echoApp:   e,
 		logger:    logger,
 		service:   s,
 		tracer:    otel.Tracer("httpDelivery"),
@@ -35,7 +35,12 @@ func NewHTTPDelivery(logger *slog.Logger, s *service.Service, jwtSecret string) 
 var validate = validator.New()
 
 func (h *httpDelivery) Start(port string) {
-	h.registerHandler()
+	v1 := h.echoApp.Group("/v1")
+
+	v1.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	h.registerV1Handler(v1)
+	h.registerV1WSHandler(v1)
 
 	h.echoApp.Use(middleware.CORS())
 
@@ -46,11 +51,7 @@ func (h *httpDelivery) Start(port string) {
 	}
 }
 
-func (h *httpDelivery) registerHandler() {
-	v1 := h.echoApp.Group("/v1")
-
-	v1.GET("/swagger/*", echoSwagger.WrapHandler)
-
+func (h *httpDelivery) registerV1Handler(v1 *echo.Group) {
 	h.registerAuthHandlers(v1)
 	h.registerApartmentHandlers(v1)
 	h.registerReservationHandlers(v1)
@@ -58,6 +59,10 @@ func (h *httpDelivery) registerHandler() {
 	h.registerFeedbackHandlers(v1)
 	h.registerOrderHandlers(v1)
 	h.registerUserHandlers(v1)
+}
+
+func (h *httpDelivery) registerV1WSHandler(v1 *echo.Group) {
+	h.registerChatHandlers(v1)
 }
 
 func (h *httpDelivery) Stop(ctx context.Context) {

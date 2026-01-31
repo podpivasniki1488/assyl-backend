@@ -12,10 +12,14 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
 	"github.com/podpivasniki1488/assyl-backend/internal/delivery"
 	"github.com/podpivasniki1488/assyl-backend/internal/repository"
 	"github.com/podpivasniki1488/assyl-backend/internal/service"
+	"github.com/podpivasniki1488/assyl-backend/pkg"
 	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
@@ -64,13 +68,28 @@ func main() {
 		_ = shutdownOTel(ctx)
 	}()
 
-	rdb := redis.NewClient(&redis.Options{
+	redisClient := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisDSN,
 		Username: cfg.RedisUsername,
 		Password: cfg.RedisPassword,
 		DB:       0,
 	})
-	if err = rdb.Ping(ctx).Err(); err != nil {
+
+	if err = redisClient.Ping(ctx).Err(); err != nil {
+		panic(err)
+	}
+
+	mongoClient, err := mongo.Connect(options.Client().ApplyURI(cfg.MongoDSN))
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err = mongoClient.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err = mongoClient.Ping(ctx, nil); err != nil {
 		panic(err)
 	}
 
@@ -79,13 +98,17 @@ func main() {
 
 	debug := cfg.Debug
 
+	e := echo.New()
+
+	hub := pkg.NewHub()
+
 	db := repository.MustInitDb(cfg.DBDSN)
 
-	repo := repository.NewRepository(db, debug, cfg.GmailUsername, cfg.GmailPassword)
+	repo := repository.NewRepository(db, mongoClient, debug, cfg.GmailUsername, cfg.GmailPassword)
 
-	srv := service.NewService(repo, rdb, cfg.JwtSecretKey)
+	srv := service.NewService(repo, redisClient, logger, hub, cfg.JwtSecretKey)
 
-	d := delivery.NewDelivery(logger, srv, cfg.JwtSecretKey)
+	d := delivery.NewDelivery(logger, e, srv, cfg.JwtSecretKey)
 
 	port := cfg.HttpPort
 
@@ -117,6 +140,7 @@ func mustReadConfig() Config {
 		GmailUsername: os.Getenv("GMAIL_USERNAME"),
 		GmailPassword: os.Getenv("GMAIL_PASSWORD"),
 		HttpPort:      os.Getenv("PORT"),
+		MongoDSN:      os.Getenv("MONGO_DSN"),
 	}
 
 	if err := validator.New().Struct(&cfg); err != nil {
@@ -136,6 +160,7 @@ type Config struct {
 	GmailUsername string `validate:"required"`
 	GmailPassword string `validate:"required"`
 	HttpPort      string `validate:"required"`
+	MongoDSN      string `validate:"required"`
 }
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
