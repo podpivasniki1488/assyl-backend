@@ -132,12 +132,12 @@ func (h *httpDelivery) approveReservation(c echo.Context) error {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		createReservationRequest	true	"Create reservation request"
-//	@Success		201		{object}	DefaultResponse[string]		"Успех"
-//	@Failure		400		{object}	DefaultResponse[error]		"Невалидный запрос"
-//	@Failure		401		{object}	DefaultResponse[error]		"Неавторизован"
-//	@Failure		403		{object}	DefaultResponse[error]		"Нет доступа"
-//	@Failure		500		{object}	DefaultResponse[error]		"Внутренняя ошибка сервера"
+//	@Param			request	body		createReservationRequest					true	"Create reservation request"
+//	@Success		201		{object}	DefaultResponse[makeReservationResponse]	"Успех"
+//	@Failure		400		{object}	DefaultResponse[error]						"Невалидный запрос"
+//	@Failure		401		{object}	DefaultResponse[error]						"Неавторизован"
+//	@Failure		403		{object}	DefaultResponse[error]						"Нет доступа"
+//	@Failure		500		{object}	DefaultResponse[error]						"Внутренняя ошибка сервера"
 //	@Router			/reservation [post]
 func (h *httpDelivery) createReservation(c echo.Context) error {
 	ctx, span := h.tracer.Start(c.Request().Context(), "httpDelivery.createReservation")
@@ -182,13 +182,18 @@ func (h *httpDelivery) createReservation(c echo.Context) error {
 		positions = append(positions, int16(p))
 	}
 
-	if err = h.service.Reservation.MakeReservation(ctx, parsed, parsedDate, positions, req.PeopleNum, role, username); err != nil {
+	res, err := h.service.Reservation.MakeReservation(ctx, parsed, parsedDate, positions, req.PeopleNum, role, username)
+	if err != nil {
 		return h.handleErrResponse(c, err)
 	}
 
-	return c.JSON(http.StatusCreated, DefaultResponse[string]{
+	return c.JSON(http.StatusCreated, DefaultResponse[makeReservationResponse]{
 		Status: "success",
-		Data:   "",
+		Data: makeReservationResponse{
+			IsSuccess:     true,
+			IsFree:        res <= 0,
+			FreeVisitLeft: res,
+		},
 	})
 }
 
@@ -256,4 +261,10 @@ type createReservationRequest struct {
 	TimeSlots []int  `json:"time_slots" validate:"required"`
 	PeopleNum uint8  `json:"people_num" validate:"required,gt=1,lt=12"`
 	Date      string `json:"date" validate:"required"` //2026-01-17
+}
+
+type makeReservationResponse struct {
+	IsSuccess     bool `json:"is_success"`
+	IsFree        bool `json:"is_free"`
+	FreeVisitLeft int  `json:"free_visit_left"`
 }

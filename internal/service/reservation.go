@@ -23,6 +23,8 @@ type reservation struct {
 
 var phoneNumRegex = regexp.MustCompile(`^\+\d{11}$`)
 
+const totalFreeReservations = 5
+
 func NewReservation(repo *repository.Repository) Reservation {
 	return &reservation{
 		tracer: otel.Tracer("reservationService"),
@@ -86,16 +88,23 @@ func (r *reservation) filterReservation(ctx context.Context, reservations []mode
 	return res, nil
 }
 
-func (r *reservation) MakeReservation(ctx context.Context, userID uuid.UUID, date time.Time, positions []int16, peopleNum uint8, role, username string) error {
+func (r *reservation) MakeReservation(
+	ctx context.Context,
+	userID uuid.UUID,
+	date time.Time,
+	positions []int16,
+	peopleNum uint8,
+	role, username string,
+) (reservationLeft int, err error) {
 	ctx, span := r.tracer.Start(ctx, "reservation.MakeReservation")
 	defer span.End()
 
 	if peopleNum > 12 {
-		return model.ErrTooManyPeople
+		return 0, model.ErrTooManyPeople
 	}
 
 	if len(positions) != 1 && len(positions) != 2 {
-		return model.ErrInvalidInput
+		return 0, model.ErrInvalidInput
 	}
 
 	sort.Slice(positions, func(i, j int) bool {
@@ -103,30 +112,30 @@ func (r *reservation) MakeReservation(ctx context.Context, userID uuid.UUID, dat
 	})
 
 	if len(positions) == 2 && positions[1] != positions[0]+1 {
-		return model.ErrInvalidInput
+		return 0, model.ErrInvalidInput
 	}
 
-	if err := r.repo.SlotRepo.EnsureDailySlots(ctx, date, time.UTC); err != nil {
-		return err
+	if err = r.repo.SlotRepo.EnsureDailySlots(ctx, date, time.UTC); err != nil {
+		return 0, err
 	}
 
 	idMap, err := r.repo.SlotRepo.GetDailySlotIDsByPositions(ctx, date, positions, time.UTC)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	dailyIDs := make([]uint64, 0, len(positions))
 	for _, p := range positions {
 		id, ok := idMap[p]
 		if !ok {
-			return model.ErrInvalidInput
+			return 0, model.ErrInvalidInput
 		}
 		dailyIDs = append(dailyIDs, id)
 	}
 
 	dSlots, err := r.repo.SlotRepo.GetDailySlots(ctx, date, time.UTC)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	var start, end time.Time
@@ -156,15 +165,39 @@ func (r *reservation) MakeReservation(ctx context.Context, userID uuid.UUID, dat
 		res.PhoneNum = username
 	}
 
-	if err = r.repo.ReservationRepo.CreateReservationsWithSlots(ctx, res, dailyIDs); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return model.ErrCinemaBusy
-		}
-
-		return err
+	user, err := r.repo.UserRepo.FindById(ctx, userID)
+	if err != nil {
+		return 0, err
 	}
 
-	return nil
+	userFromSameApart, err := r.repo.UserRepo.FindByApartmentId(ctx, user.ApartmentID)
+	if err != nil {
+		return 0, err
+	}
+
+	reservationLeft = totalFreeReservations
+	for _, u := range userFromSameApart {
+		reservations, err := r.repo.ReservationRepo.GetByFilters(ctx, &model.GetReservationRequest{
+			StartTimeFrom: start,
+			EndTimeTo:     end,
+			UserID:        u.ID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		reservationLeft -= len(reservations)
+	}
+
+	if err = r.repo.ReservationRepo.CreateReservationsWithSlots(ctx, res, dailyIDs); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return 0, model.ErrCinemaBusy
+		}
+
+		return 0, err
+	}
+
+	return reservationLeft, nil
 }
 
 func (r *reservation) ApproveReservation(ctx context.Context, id uuid.UUID) error {

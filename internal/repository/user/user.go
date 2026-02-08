@@ -34,18 +34,38 @@ func (u *userRepository) FindById(ctx context.Context, id uuid.UUID) (*model.Use
 	var user model.User
 	query := u.db.
 		WithContext(ctx).
-		Where("id = ?", id.String()).
-		Find(&user)
+		Where("id = ?", id.String())
+
+	if u.debug {
+		query = query.Debug()
+	}
+
+	if err := query.Find(&user).Error; err != nil {
+		return nil, model.ErrDBUnexpected.WithErr(err)
+	}
+
+	return &user, nil
+}
+
+func (u *userRepository) FindByApartmentId(ctx context.Context, apartmentId uuid.UUID) ([]model.User, error) {
+	ctx, span := u.tracer.Start(ctx, "userRepository.FindByApartmentId")
+	defer span.End()
+
+	var users []model.User
+	query := u.db.
+		WithContext(ctx).
+		Where("apartment_id = ?", apartmentId.String()).
+		Find(&users)
 
 	if u.debug {
 		query = query.Debug()
 	}
 
 	if err := query.Error; err != nil {
-		return nil, err
+		return nil, model.ErrDBUnexpected.WithErr(err)
 	}
 
-	return &user, nil
+	return users, nil
 }
 
 func (u *userRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {

@@ -93,7 +93,7 @@ func main() {
 		panic(err)
 	}
 
-	txtHandler := slog.NewTextHandler(os.Stdin, nil)
+	txtHandler := slog.NewTextHandler(os.Stdout, nil)
 	logger := slog.New(txtHandler)
 
 	debug := cfg.Debug

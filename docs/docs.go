@@ -834,7 +834,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Успех",
                         "schema": {
-                            "$ref": "#/definitions/http.DefaultResponse-string"
+                            "$ref": "#/definitions/http.DefaultResponse-http_makeReservationResponse"
                         }
                     },
                     "400": {
@@ -1125,6 +1125,20 @@ const docTemplate = `{
                 }
             }
         },
+        "http.DefaultResponse-http_makeReservationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/http.makeReservationResponse"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "http.DefaultResponse-model_Apartment": {
             "type": "object",
             "properties": {
@@ -1298,6 +1312,20 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/model.User"
+                }
+            }
+        },
+        "http.makeReservationResponse": {
+            "type": "object",
+            "properties": {
+                "free_visit_left": {
+                    "type": "integer"
+                },
+                "is_free": {
+                    "type": "boolean"
+                },
+                "is_success": {
+                    "type": "boolean"
                 }
             }
         },

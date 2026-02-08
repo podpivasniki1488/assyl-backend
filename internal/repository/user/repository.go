@@ -10,6 +10,7 @@ import (
 type UserRepo interface {
 	FindById(ctx context.Context, id uuid.UUID) (*model.User, error)
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
+	FindByApartmentId(ctx context.Context, apartmentId uuid.UUID) ([]model.User, error)
 	DeleteByUsername(ctx context.Context, username string) error
 	CreateUser(ctx context.Context, user *model.User) error
 	UpdateUser(ctx context.Context, user *model.User) (*model.User, error)
